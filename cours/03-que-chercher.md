@@ -87,9 +87,9 @@ La même logique recopiée à plusieurs endroits.
 
 ```ts
 // ❌ TypeScript
-const total1 = sousTotal + sousTotal * 0.2;
+const total1 = sousTotal + (sousTotal * 0.2);
 // … 50 lignes plus loin
-const total2 = sousTotal2 + sousTotal2 * 0.2;
+const total2 = sousTotal2 + (sousTotal2 * 0.2);
 ```
 
 ```python
