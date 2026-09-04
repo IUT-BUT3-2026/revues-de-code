@@ -46,4 +46,14 @@ describe("Healing", () => {
 
     expect(character.health).toBe(800);
   });
+
+  it("caps health at 1000 when healing would exceed the maximum", () => {
+    const character = new Character();
+    const other = new Character();
+    other.dealDamage(character, 100);
+
+    character.heal(500);
+
+    expect(character.health).toBe(1000);
+  });
 });

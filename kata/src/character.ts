@@ -1,7 +1,7 @@
-const STARTING_HEALTH = 1000;
+const MAX_HEALTH = 1000;
 
 export class Character {
-  private currentHealth = STARTING_HEALTH;
+  private currentHealth = MAX_HEALTH;
 
   get health(): number {
     return this.currentHealth;
@@ -16,7 +16,7 @@ export class Character {
   }
 
   heal(amount: number): void {
-    this.currentHealth += amount;
+    this.currentHealth = Math.min(MAX_HEALTH, this.currentHealth + amount);
   }
 
   private receiveDamage(amount: number): void {

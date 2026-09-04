@@ -77,7 +77,11 @@ pour un système de combat (évite l'inflation de vie via le soin, qui
 casserait l'équilibre du jeu), mais **ce n'est pas écrit** dans la spec :
 décision à valider avant implémentation, pas déduite silencieusement.
 
-**Statut :** en attente de décision humaine.
+**Statut :** ✅ **tranché par l'humain (2026-09-04) : option A — plafond à
+1000.** Implémenté (cycle think-red-green-refactor complet) :
+`Character.heal` plafonne `currentHealth` à `MAX_HEALTH` via `Math.min`.
+Renommage `STARTING_HEALTH` → `MAX_HEALTH` en phase REFACTOR, la constante
+portant désormais les deux rôles (valeur de départ = plafond).
 
 ---
 
@@ -88,5 +92,5 @@ décision à valider avant implémentation, pas déduite silencieusement.
 - `attacker.dealDamage(target, amount)` réduit `target.health`.
 - Des dégâts qui dépassent `health` amènent `health` à 0 et `isAlive` à
   `false`.
-- `character.heal(amount)` augmente `character.health` (sans plafond —
-  volontairement non implémenté tant que Q3 n'est pas tranchée).
+- `character.heal(amount)` augmente `character.health`, plafonné à 1000
+  (Q3 tranchée).
