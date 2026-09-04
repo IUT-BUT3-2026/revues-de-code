@@ -467,7 +467,7 @@ Pourquoi c'est important :
 
 ---
 
-## 6. Refactoring — étape 5 : le style fonctionnel
+## 6. Refactoring — étape 5 : le style fonctionnel (1/2)
 
 **Smell corrigé : la boucle + l'état mutable** — remplacés par `filter` / `map` / `reduce`.
 
@@ -489,9 +489,16 @@ function calculateTotal(cart: CartItem[]): Money {
 ```
 
 - le `for` et le `let total = 0` **mutable** disparaissent ;
-- chaque étape est **nommée** : on lit le *quoi* sans suivre l'état qui change ;
+- chaque étape est **nommée** : on lit le *quoi* sans suivre l'état qui change.
+
+---
+
+## 6. Refactoring — étape 5 : pourquoi c'est mieux (2/2)
+
 - `isInStock()` est un **prédicat** (Tell, Don't Ask) — pas un getter ;
-- moins d'état mutable → moins de surprises pour le relecteur.
+- moins d'**état mutable** → moins de surprises pour le relecteur ;
+- la chaîne se **lit comme une phrase** : on filtre, on transforme, on agrège ;
+- chaque transformation est **isolée** — donc facile à comprendre et à vérifier.
 
 > Les mêmes `filter` / `map` / `reduce` existent en Python, Java, JavaScript… — encore une fois, les principes sont universels.
 
