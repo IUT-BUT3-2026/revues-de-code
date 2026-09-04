@@ -467,6 +467,36 @@ Pourquoi c'est important :
 
 ---
 
+## 6. Refactoring — étape 5 : le style fonctionnel
+
+**Smell corrigé : la boucle + l'état mutable** — remplacés par `filter` / `map` / `reduce`.
+
+```ts
+class CartItem {
+  // … (étape 4) + un prédicat, qui « dit » sans exposer ses données :
+  isInStock(): boolean {
+    return this.quantity > 0;
+  }
+}
+
+function calculateTotal(cart: CartItem[]): Money {
+  const total = cart
+    .filter((item) => item.isInStock())            // filter : on ne garde que les articles en stock
+    .map((item) => item.subtotal())                // map : chaque article → son sous-total
+    .reduce((sum, subtotal) => sum + subtotal, 0); // reduce : on agrège en un total
+  return applyDiscount(total);
+}
+```
+
+- le `for` et le `let total = 0` **mutable** disparaissent ;
+- chaque étape est **nommée** : on lit le *quoi* sans suivre l'état qui change ;
+- `isInStock()` est un **prédicat** (Tell, Don't Ask) — pas un getter ;
+- moins d'état mutable → moins de surprises pour le relecteur.
+
+> Les mêmes `filter` / `map` / `reduce` existent en Python, Java, JavaScript… — encore une fois, les principes sont universels.
+
+---
+
 ## 6. Object Calisthenics — le chemin parcouru
 
 | Étape | Smell corrigé | Résultat |
@@ -475,6 +505,7 @@ Pourquoi c'est important :
 | 2 | valeurs magiques | constantes nommées |
 | 3 | `else` + indentation | gardes, chemin normal |
 | 4 | responsabilités + primitifs nus | fonctions courtes, types enveloppés |
+| 5 | boucle + état mutable | `filter` / `map` / `reduce` — style fonctionnel |
 
 > **Un refactoring se fait un smell à la fois.** À chaque étape, le code compile, fonctionne, et les tests passent. On s'arrête dès que le code est « assez bien » pour être relu.
 
