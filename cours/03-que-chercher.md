@@ -314,10 +314,97 @@ Ce qu'un relecteur calisthenics voit d'un coup :
 
 ---
 
-## 6. Object Calisthenics — avec les règles (clean)
+## 6. Refactoring — étape 1 : nommer
+
+**Smell corrigé : les abréviations.** La logique est identique — on ne change rien d'autre.
 
 ```ts
-// ✅ Avec calisthenics
+function calculateTotal(cart: { items: Item[] }): number {
+  let total = 0;
+  for (const item of cart.items) {
+    if (item.quantity > 0) {
+      if (item.price > 0) {
+        total += item.price * item.quantity;
+      } else {
+        throw new Error("bad item");
+      }
+    }
+  }
+  if (total > 100) {
+    return total * 0.9;
+  } else {
+    return total;
+  }
+}
+```
+
+`calc` → `calculateTotal` · `t` → `total` · `it` → `item` · `p` → `price` · `q` → `quantity`
+
+> Le code est déjà plus lisible — la structure, elle, n'a pas bougé.
+
+---
+
+## 6. Refactoring — étape 2 : nommer les valeurs
+
+**Smell corrigé : les valeurs magiques.** On extrait les constantes.
+
+```ts
+const DISCOUNT_THRESHOLD = 100;
+const DISCOUNT_RATE = 0.9;
+
+function calculateTotal(cart: { items: Item[] }): number {
+  let total = 0;
+  for (const item of cart.items) {
+    if (item.quantity > 0) {
+      if (item.price > 0) {
+        total += item.price * item.quantity;
+      } else {
+        throw new Error("bad item");
+      }
+    }
+  }
+  if (total > DISCOUNT_THRESHOLD) {
+    return total * DISCOUNT_RATE;
+  } else {
+    return total;
+  }
+}
+```
+
+> Le *quoi* (seuil, taux) devient explicite — et modifiable en un seul endroit.
+
+---
+
+## 6. Refactoring — étape 3 : les gardes
+
+**Smell corrigé : les `else`** — et par la même occasion, l'indentation chute de 3 niveaux à 1.
+
+```ts
+const DISCOUNT_THRESHOLD = 100;
+const DISCOUNT_RATE = 0.9;
+
+function calculateTotal(cart: { items: Item[] }): number {
+  let total = 0;
+  for (const item of cart.items) {
+    if (item.quantity <= 0 || item.price <= 0) {
+      throw new Error("bad item");
+    }
+    total += item.price * item.quantity;
+  }
+  if (total > DISCOUNT_THRESHOLD) return total * DISCOUNT_RATE;
+  return total;
+}
+```
+
+> Le cas invalide est écarté **en tête** (garde) ; le reste du code suit le chemin normal.
+
+---
+
+## 6. Refactoring — étape 4 : extraire et envelopper
+
+**Smell corrigé : trop de responsabilités + primitifs nus.** Chaque rôle sort dans une fonction ; la structure porte la logique.
+
+```ts
 type Money = number;   // primitif enveloppé
 
 class CartItem {
@@ -344,16 +431,24 @@ function applyDiscount(total: Money): Money {
   if (total > DISCOUNT_THRESHOLD) return total * DISCOUNT_RATE;
   return total;
 }
-
-const DISCOUNT_THRESHOLD = 100;
-const DISCOUNT_RATE = 0.9;
 ```
 
-- noms **complets** — pas d'abréviations ;
-- **constantes nommées** — pas de valeurs magiques ;
-- pas de **`else`** — retours anticipés ;
-- **un niveau d'indentation**, fonctions courtes ;
-- primitifs **enveloppés** (`Money`, `CartItem`).
+- une **responsabilité par fonction** (`subtotal`, `applyDiscount`) ;
+- les **primitifs enveloppés** (`Money`, `CartItem`) ;
+- noms complets, constantes, gardes — les étapes précédentes sont conservées.
+
+---
+
+## 6. Object Calisthenics — le chemin parcouru
+
+| Étape | Smell corrigé | Résultat |
+|-------|---------------|----------|
+| 1 | abréviations | noms complets |
+| 2 | valeurs magiques | constantes nommées |
+| 3 | `else` + indentation | gardes, chemin normal |
+| 4 | responsabilités + primitifs nus | fonctions courtes, types enveloppés |
+
+> **Un refactoring se fait un smell à la fois.** À chaque étape, le code compile, fonctionne, et les tests passent. On s'arrête dès que le code est « assez bien » pour être relu.
 
 ---
 
