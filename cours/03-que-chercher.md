@@ -439,6 +439,34 @@ function applyDiscount(total: Money): Money {
 
 ---
 
+## 6. « Tell, Don't Ask » — le principe derrière l'étape 4
+
+*The Pragmatic Programmer* (Hunt & Thomas) :
+
+> **Ne demande pas à l'objet ses données pour décider à sa place — dis-lui de faire.**
+
+Avant (étape 3) — on **demande**, on décide à sa place :
+
+```ts
+total += item.price * item.quantity;   // ask : on récupère les données…
+```
+
+Après (étape 4) — on **dit** :
+
+```ts
+total += item.subtotal();              // tell : on demande le résultat
+```
+
+Pourquoi c'est important :
+
+- la logique vit **là où sont les données** (dans `CartItem`) ;
+- si le calcul change (arrondi, TVA), on modifie **un seul endroit** ;
+- le code appelant ne connaît pas les détails internes de l'objet.
+
+> En revue : repérez les chaînes qui « demandent » (`item.price * item.quantity`) — c'est souvent un *ask* qui devrait être un *tell*.
+
+---
+
 ## 6. Object Calisthenics — le chemin parcouru
 
 | Étape | Smell corrigé | Résultat |
