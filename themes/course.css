@@ -3,10 +3,57 @@
 @import 'default';
 
 /*
- * Marges verticales réduites : le thème par défaut (40px) fait déborder
- * les slides denses. Ajuster ici si besoin (une seule source de vérité).
+ * Ergonomie : marges verticales réduites + typographie compacte,
+ * pour éviter le débordement du texte sur les slides denses.
+ * Tout se règle ici (une seule source de vérité).
  */
 section {
   padding-top: 16px;
   padding-bottom: 16px;
+  font-size: 0.92em;
+}
+
+/* Titres plus compacts */
+section :is(h1, h2, h3, h4) {
+  margin-top: 0.4em;
+  margin-bottom: 0.3em;
+}
+
+/* Paragraphes et listes plus serrés */
+section p {
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
+
+section ul,
+section ol {
+  margin-top: 0.2em;
+  margin-bottom: 0.2em;
+}
+
+section li {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+/* Blocs de code compacts */
+section pre {
+  font-size: 0.78em;
+  line-height: 1.35;
+  margin-top: 0.3em;
+  margin-bottom: 0.3em;
+}
+
+section code {
+  font-size: 0.9em;
+}
+
+/* Citations et tableaux */
+section blockquote {
+  margin-top: 0.3em;
+  margin-bottom: 0.3em;
+}
+
+section table {
+  font-size: 0.9em;
 }
