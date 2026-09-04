@@ -1,6 +1,6 @@
 ---
 marp: true
-theme: default
+theme: course
 ---
 
 # Module 2 — Le workflow de revue sur GitHub

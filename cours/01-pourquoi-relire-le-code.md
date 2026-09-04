@@ -1,6 +1,6 @@
 ---
 marp: true
-theme: default
+theme: course
 ---
 
 # Module 1 — Pourquoi relire le code ?

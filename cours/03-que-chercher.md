@@ -1,6 +1,6 @@
 ---
 marp: true
-theme: default
+theme: course
 ---
 
 # Module 3 — Que chercher dans une revue ? La conception

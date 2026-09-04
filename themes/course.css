@@ -1,0 +1,12 @@
+/* @theme course */
+
+@import 'default';
+
+/*
+ * Marges verticales réduites : le thème par défaut (40px) fait déborder
+ * les slides denses. Ajuster ici si besoin (une seule source de vérité).
+ */
+section {
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
