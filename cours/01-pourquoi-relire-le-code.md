@@ -97,18 +97,19 @@ Mais c'est le **meilleur rapport coût / efficacité** pour la qualité.
 
 ---
 
-## 4. Le compilateur ne suffit pas
+## 4. Les vérifications automatiques ne suffisent pas
 
-TypeScript attrape beaucoup de choses à la compilation.
-
-Mais le compilateur ne sait pas *pourquoi* le code existe, ni ce qu'il est *censé* faire :
+Compilateurs et linters attrapent beaucoup d'erreurs —
+mais ils ne savent pas *pourquoi* le code existe, ni ce qu'il est *censé* faire :
 
 - logique métier incorrecte ;
 - oubli (cas limite non traité, paramètre inutilisé) ;
 - problème de sécurité (donnée utilisateur injectée) ;
 - code illisible, cauchemar à maintenir dans 6 mois.
 
-> **La revue est le complément humain du compilateur** : elle vérifie ce que la machine ne peut pas vérifier — l'intention, la pertinence, la clarté.
+> **La revue est le complément humain des outils automatiques** : elle vérifie ce que la machine ne peut pas vérifier — l'intention, la pertinence, la clarté.
+
+*(En TD, nous utiliserons TypeScript — ses pièges spécifiques seront vus au Module 5.)*
 
 ---
 
@@ -144,22 +145,13 @@ et oublie que le lecteur ne sait pas ce qu'on sait.
 
 ---
 
-## 6. L'auto-revue en TypeScript — 5 réflexes
+## 6. L'auto-revue — 5 réflexes (indépendants du langage)
 
-1. Le typage est-il **honnête** ? (pas de `any` échappatoire)
-2. Les cas `null` / `undefined` sont-ils traités ?
-3. Les erreurs sont-elles gérées ? (pas de `try/catch` silencieux)
-4. Le code est-il lisible **hors de son contexte** ?
-5. Y a-t-il des tests pour les **cas limites** ?
-
-```ts
-// À éviter : any fait perdre toute la valeur de TypeScript
-function getTotal(items: any): any { /* … */ }
-
-// Mieux : types explicites
-interface Item { price: number }
-function getTotal(items: Item[]): number { /* … */ }
-```
+1. Les **entrées** sont-elles validées ? (valeurs négatives, vides, extrêmes)
+2. Les **erreurs** sont-elles gérées ? (pas d'échec silencieux)
+3. Le code est-il lisible **hors de son contexte** ?
+4. Les **tests** couvrent-ils les cas limites, pas seulement le chemin heureux ?
+5. Les **noms** disent-ils l'intention, pas l'implémentation ?
 
 ---
 
@@ -243,8 +235,9 @@ Détail du workflow complet : **Module 2**.
 
 ## 10. Questions de compréhension — 1/2
 
-1. Pourquoi le compilateur TypeScript ne rend-il pas la revue inutile ?
-   Deux catégories de problèmes qu'il ne détecte pas ?
+1. Pourquoi les vérifications automatiques (compilateur, linter) ne
+   rendent-elles pas la revue inutile ? Deux catégories de problèmes
+   qu'elles ne détectent pas ?
 2. Citez trois bénéfices autres que la réduction des bugs.
 3. Quelle est la limite structurelle de l'auto-revue ?
 4. Pourquoi relire un *diff* plutôt que le fichier complet ?

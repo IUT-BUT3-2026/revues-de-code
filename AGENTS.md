@@ -1,5 +1,9 @@
 # AGENTS.md — Conventions du projet
 
+## Workflow de travail
+
+- **Commit et push après chaque étape qui fonctionne.**
+
 Cours « Revue de code » (Bachelor informatique, programmation logicielle).
 Langue : français. Exemples : TypeScript.
 
@@ -13,6 +17,8 @@ Langue : français. Exemples : TypeScript.
 - Chaque module liste ses objectifs pédagogiques en tête de fichier.
 - Un module = un fichier ; les TD = des branches `tdN` (pas de fichiers de TD
   dupliqués dans `main`).
+- Les modules de cours sont **indépendants du langage** : les spécificités
+  TypeScript sont regroupées dans le Module 5 (et mises en pratique en TD).
 
 ## Structure du dépôt
 
