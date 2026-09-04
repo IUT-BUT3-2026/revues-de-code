@@ -281,6 +281,82 @@ function appliquerRemise(total: number, code: string): number { /* … */ }
 
 ---
 
+## 6. Object Calisthenics — sans les règles (dirty)
+
+```ts
+// ❌ Sans calisthenics
+function calc(cart: { items: Item[] }): number {
+  let t = 0;
+  for (const it of cart.items) {
+    if (it.q > 0) {
+      if (it.p > 0) {
+        t += it.p * it.q;
+      } else {
+        throw new Error("bad item");
+      }
+    }
+  }
+  if (t > 100) {
+    return t * 0.9;
+  } else {
+    return t;
+  }
+}
+```
+
+Ce qu'un relecteur calisthenics voit d'un coup :
+
+- **3 niveaux d'indentation** (boucle + deux `if`) ;
+- deux **`else`** ;
+- **abréviations** : `calc`, `t`, `it`, `p`, `q` ;
+- **valeurs magiques** : `100`, `0.9` ;
+- tout dans **une seule fonction** qui calcule ET applique la remise.
+
+---
+
+## 6. Object Calisthenics — avec les règles (clean)
+
+```ts
+// ✅ Avec calisthenics
+type Money = number;   // primitif enveloppé
+
+class CartItem {
+  constructor(
+    private readonly name: string,
+    private readonly price: Money,
+    private readonly quantity: number,
+  ) {}
+
+  subtotal(): Money {
+    return this.price * this.quantity;
+  }
+}
+
+function calculateTotal(cart: CartItem[]): Money {
+  let total = 0;
+  for (const item of cart) {
+    total += item.subtotal();
+  }
+  return applyDiscount(total);
+}
+
+function applyDiscount(total: Money): Money {
+  if (total > DISCOUNT_THRESHOLD) return total * DISCOUNT_RATE;
+  return total;
+}
+
+const DISCOUNT_THRESHOLD = 100;
+const DISCOUNT_RATE = 0.9;
+```
+
+- noms **complets** — pas d'abréviations ;
+- **constantes nommées** — pas de valeurs magiques ;
+- pas de **`else`** — retours anticipés ;
+- **un niveau d'indentation**, fonctions courtes ;
+- primitifs **enveloppés** (`Money`, `CartItem`).
+
+---
+
 ## 6. Object Calisthenics — 3 règles illustrées
 
 **Pas de `else`** — le retour anticipé simplifie :
