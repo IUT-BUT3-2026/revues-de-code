@@ -1,15 +1,25 @@
+const STARTING_HEALTH = 1000;
+
 export class Character {
-  health = 1000;
-  isAlive = true;
+  private currentHealth = STARTING_HEALTH;
+
+  get health(): number {
+    return this.currentHealth;
+  }
+
+  get isAlive(): boolean {
+    return this.currentHealth > 0;
+  }
 
   dealDamage(target: Character, amount: number): void {
-    target.health = Math.max(0, target.health - amount);
-    if (target.health === 0) {
-      target.isAlive = false;
-    }
+    target.receiveDamage(amount);
   }
 
   heal(amount: number): void {
-    this.health += amount;
+    this.currentHealth += amount;
+  }
+
+  private receiveDamage(amount: number): void {
+    this.currentHealth = Math.max(0, this.currentHealth - amount);
   }
 }

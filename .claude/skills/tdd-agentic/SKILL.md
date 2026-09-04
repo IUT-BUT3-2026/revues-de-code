@@ -114,7 +114,10 @@ bonnes raisons**. Passer chaque rubrique en revue et agir sur les signaux :
 1. Uniquement quand **tout est vert**.
 2. Petits pas ; relancer la suite **après chaque pas**.
 3. Refactorer le **code de production ET les tests** (lisibilité,
-   duplication, nommage métier).
+   duplication, nommage métier) en appliquant le skill **`clean-code`**
+   (`.claude/skills/clean-code/SKILL.md`) : un smell à la fois, dans
+   l'ordre nommer → constantes → gardes → extraire/encapsuler →
+   fonctionnel, arrêt dès que c'est « assez bien ».
 4. Traiter les signaux de conception notés en THINK (couplages mis en
    évidence). Si le refactor nécessaire change un comportement spécifié →
    **escalade spécification**, pas de décision unilatérale.
@@ -159,13 +162,4 @@ sont ambiguës ou incomplètes. C'est l'humain qui tranche, jamais l'agent.
 - affaiblir ou supprimer une assertion pour contourner l'ambiguïté ;
 - modifier la spec sans validation humaine.
 
-## Pourquoi (bénéfices attendus)
 
-- 🛎 le code est **prévu pour les tests** (surface publique/privée évidente) ;
-- 🛎 des tests unitaires forcent un code unitaire (Single Responsibility,
-  philosophie Unix) ;
-- 🛎 le test reste là pour toujours 🎰 **non-régression** ;
-- 🛎 le test explique pourquoi le code est là et ce qu'on attend de lui 🎰
-  **documentation vivante** ;
-- 🧠 + 🤖 : le TDD agentique est un élément indispensable du **harnais**
-  (harness) sur les parties critiques du produit logiciel.
