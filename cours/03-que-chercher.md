@@ -524,6 +524,43 @@ const DISCOUNT_RATE = 0.9;
 
 ---
 
+## 7. Object Calisthenics — le style fonctionnel (1/2)
+
+**Un pas de plus : la boucle + l'état mutable** — remplacés par `filter` / `map` / `reduce`.
+
+```ts
+class CartItem {
+  // … (étape 4) + un prédicat, qui « dit » sans exposer ses données :
+  isInStock(): boolean {
+    return this.quantity > 0;
+  }
+}
+
+function calculateTotal(cart: CartItem[]): Money {
+  const total = cart
+    .filter((item) => item.isInStock())            // filter : on ne garde que les articles en stock
+    .map((item) => item.subtotal())                // map : chaque article → son sous-total
+    .reduce((sum, subtotal) => sum + subtotal, 0); // reduce : on agrège en un total
+  return applyDiscount(total);
+}
+```
+
+- le `for` et le `let total = 0` **mutable** disparaissent ;
+- chaque étape est **nommée** : on lit le *quoi* sans suivre l'état qui change.
+
+---
+
+## 7. Object Calisthenics — le style fonctionnel : pourquoi c'est mieux (2/2)
+
+- `isInStock()` est un **prédicat** (Tell, Don't Ask) — pas un getter ;
+- moins d'**état mutable** → moins de surprises pour le relecteur ;
+- la chaîne se **lit comme une phrase** : on filtre, on transforme, on agrège ;
+- chaque transformation est **isolée** — donc facile à comprendre et à vérifier.
+
+> Les mêmes `filter` / `map` / `reduce` existent en Python, Java, JavaScript… — encore une fois, les principes sont universels.
+
+---
+
 ## 7. Object Calisthenics — le chemin parcouru
 
 | Étape | Smell corrigé | Résultat |
@@ -532,7 +569,7 @@ const DISCOUNT_RATE = 0.9;
 | 2 | valeurs magiques | constantes nommées |
 | 3 | `else` + indentation | gardes, chemin normal |
 | 4 | responsabilités + primitifs nus | fonctions courtes, types enveloppés |
-| 5 | boucle + état mutable | `filter` / `map` / `reduce` → chapitre 8 |
+| 5 | boucle + état mutable | `filter` / `map` / `reduce` — style fonctionnel |
 
 > **Un refactoring se fait un smell à la fois.** À chaque étape, le code compile, fonctionne, et les tests passent. On s'arrête dès que le code est « assez bien » pour être relu.
 
@@ -559,44 +596,7 @@ function statut(age: number): string {
 
 ---
 
-## 8. Le style fonctionnel — filter / map / reduce (1/2)
-
-**Un pas de plus : la boucle + l'état mutable** — remplacés par `filter` / `map` / `reduce`.
-
-```ts
-class CartItem {
-  // … (étape 4) + un prédicat, qui « dit » sans exposer ses données :
-  isInStock(): boolean {
-    return this.quantity > 0;
-  }
-}
-
-function calculateTotal(cart: CartItem[]): Money {
-  const total = cart
-    .filter((item) => item.isInStock())            // filter : on ne garde que les articles en stock
-    .map((item) => item.subtotal())                // map : chaque article → son sous-total
-    .reduce((sum, subtotal) => sum + subtotal, 0); // reduce : on agrège en un total
-  return applyDiscount(total);
-}
-```
-
-- le `for` et le `let total = 0` **mutable** disparaissent ;
-- chaque étape est **nommée** : on lit le *quoi* sans suivre l'état qui change.
-
----
-
-## 8. Le style fonctionnel — pourquoi c'est mieux (2/2)
-
-- `isInStock()` est un **prédicat** (Tell, Don't Ask) — pas un getter ;
-- moins d'**état mutable** → moins de surprises pour le relecteur ;
-- la chaîne se **lit comme une phrase** : on filtre, on transforme, on agrège ;
-- chaque transformation est **isolée** — donc facile à comprendre et à vérifier.
-
-> Les mêmes `filter` / `map` / `reduce` existent en Python, Java, JavaScript… — encore une fois, les principes sont universels.
-
----
-
-## 9. Les patterns — c'est quoi ?
+## 8. Les patterns — c'est quoi ?
 
 > **Définition** — Un *design pattern* est une **solution éprouvée** à un problème de conception récurrent, décrite avec un nom, un problème et une solution.
 
@@ -606,7 +606,7 @@ function calculateTotal(cart: CartItem[]): Money {
 
 ---
 
-## 9. Pattern : Strategy — remplacer les if/else
+## 8. Pattern : Strategy — remplacer les if/else
 
 ```ts
 // ❌ TypeScript — une cascade de conditions qui grossira
@@ -624,7 +624,7 @@ def prix_final(prix: float, code: str) -> float:
 
 ---
 
-## 9. Pattern : Strategy — même idée en TypeScript
+## 8. Pattern : Strategy — même idée en TypeScript
 
 ```ts
 // ✅ TypeScript — même idée avec un objet
@@ -638,7 +638,7 @@ const STRATEGIES: Record<string, (p: number) => number> = {
 
 ---
 
-## 9. Quelques patterns à reconnaître
+## 8. Quelques patterns à reconnaître
 
 | Pattern | Problème résolu | Indice en revue |
 |---------|-----------------|-----------------|
@@ -652,7 +652,7 @@ const STRATEGIES: Record<string, (p: number) => number> = {
 
 ---
 
-## 9. Les anti-patterns à signaler
+## 8. Les anti-patterns à signaler
 
 | Anti-pattern | Symptôme |
 |--------------|----------|
@@ -666,7 +666,7 @@ const STRATEGIES: Record<string, (p: number) => number> = {
 
 ---
 
-## 10. La testabilité — concevoir pour pouvoir tester
+## 9. La testabilité — concevoir pour pouvoir tester
 
 *(Les tests eux-mêmes sont vus dans un autre cours. Ici : concevoir pour qu'ils soient possibles.)*
 
@@ -680,7 +680,7 @@ Un code **testable** est :
 
 ---
 
-## 10. Dépendances injectées, pas créées en dur
+## 9. Dépendances injectées, pas créées en dur
 
 ```ts
 // ❌ TypeScript — impossible à tester sans vraie base
@@ -705,7 +705,7 @@ class Facture:
 
 ---
 
-## 10. Fonctions pures, effets de bord maîtrisés
+## 9. Fonctions pures, effets de bord maîtrisés
 
 ```ts
 // ❌ TypeScript — effet de bord caché (état global modifié)
@@ -730,7 +730,7 @@ def nouveau_solde(solde: float, montant: float) -> float:
 
 ---
 
-## 11. Récapitulatif — la checklist « conception » du relecteur
+## 10. Récapitulatif — la checklist « conception » du relecteur
 
 - [ ] le code est-il **plus simple** que nécessaire ? (KISS, YAGNI)
 - [ ] pas de **duplication** ? (DRY)
@@ -743,7 +743,7 @@ def nouveau_solde(solde: float, montant: float) -> float:
 
 ---
 
-## 12. Questions de compréhension
+## 11. Questions de compréhension
 
 1. Dans quel ordre traiter les 4 niveaux d'une revue ? Pourquoi ?
 2. Citez les 4 règles du design simple (Beck).
