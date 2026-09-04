@@ -1,7 +1,10 @@
-## Revue de code — TD
+## Groupe
 
-> Complétez ce modèle : c'est la « couverture » de votre rendu. La PR doit
-> rester **ouverte** jusqu'à la correction.
+- **Préfixe :** `<année>-<etablissement>-<groupe>` — ex. `2026-IUT-BUT3-DUPONT`
+- [ ] `GROUPE.md` rempli à la racine (membres + pseudos GitHub)
+- [ ] Titre de la PR préfixé : `2026-IUT-BUT3-DUPONT — TD1 — revue de …`
+
+## Revue de code — TD
 
 ### Fichiers relus
 

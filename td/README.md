@@ -2,69 +2,130 @@
 
 Les TD se déroulent **entièrement sur GitHub**, avec le workflow industriel :
 *branche → pull request → revue → corrections*. Chaque TD expose une branche
-de code à revoir ; l'étudiant rend sa revue sous forme de **pull request** sur
-le dépôt du cours.
+de code à revoir ; chaque **groupe** rend sa revue sous forme de **pull
+request** sur le dépôt du cours.
 
-## Le principe, TD par TD
+## 1. Organisation : le travail se fait par groupes
 
-1. L'enseignant publie une branche `tdN` contenant **le code à revoir** et
-   l'énoncé (`tdN/README.md`).
-2. L'étudiant **forke** le dépôt du cours (le fork copie toutes les branches).
-3. L'étudiant crée sa branche de travail **depuis la branche du TD**.
-4. L'étudiant ouvre une **pull request** de son fork vers la branche
-   principale du dépôt du cours : le code à revoir apparaît dans le diff.
-5. L'étudiant **annote** le code : un commentaire en ligne par problème
-   (commentaires de revue sur le diff).
-6. L'étudiant **propose des corrections** : de nouveaux commits sur sa
-   branche qui améliorent le code.
-7. Le corps de la PR résume la revue (modèle fourni automatiquement).
-8. La PR reste ouverte : c'est le « rendu ». L'enseignant note, la liste des
-   PR ouvertes indique qui a rendu.
+- Les étudiants se regroupent (taille fixée par l'enseignant, ex. 2-3).
+- Chaque groupe désigne un **porteur** : c'est lui qui **forke** le dépôt.
+- **Un fork et une PR par groupe.** Les membres rejoignent le fork du porteur
+  comme collaborateurs (voir étapes ci-dessous).
 
-## Côté étudiant — les commandes
+## 2. Consignes de nommage — le préfixe
+
+Tout le rendu du groupe porte le préfixe
+**`<année>-<etablissement>-<groupe>`**, où `groupe` est le **nom de famille
+du porteur** (sans accent, en majuscules) :
+
+| Élément | Format | Exemple |
+|---------|--------|---------|
+| Préfixe | `2026-IUT-BUT3-DUPONT` | — |
+| Branche | `<préfixe>-td<N>` | `2026-IUT-BUT3-DUPONT-td1` |
+| Titre de PR | `<préfixe> — TD<N> — revue de <fichiers>` | `2026-IUT-BUT3-DUPONT — TD1 — revue de cart.ts` |
+
+Le préfixe permet à l'enseignant d'identifier immédiatement le groupe, la
+promotion et l'année dans la liste des PR.
+
+## 3. La fiche `GROUPE.md` (obligatoire, notée)
+
+Le fichier **`GROUPE.md`** est fourni à la racine du dépôt. Il doit être
+**rempli et présent dans la PR** :
+
+- membres du groupe (nom d'état civil + pseudo GitHub) ;
+- rôle de chacun (porteur / membre) ;
+- TD et lien de la PR.
+
+La section **Note** est réservée à l'enseignant. Un `GROUPE.md` absent ou
+incomplet rend le rendu incomplet.
+
+## 4. Déroulé précis (fork + PR), étape par étape
+
+### Étape 1 — Le porteur forke le dépôt
+
+Sur github.com, ouvrir `IUT-BUT3-2026/revues-de-code` → bouton **Fork**
+(en haut à droite).
+
+### Étape 2 — Le porteur ajoute les membres au fork
+
+Fork → **Settings** → **Collaborators** → ajouter le pseudo GitHub de chaque
+membre. Chaque membre accepte l'invitation reçue par email. Tous les membres
+peuvent ensuite travailler sur le même fork.
+
+### Étape 3 — Cloner et créer la branche préfixée
 
 ```sh
-# 1. Forker le dépôt depuis github.com (bouton « Fork »)
-
-# 2. Cloner son fork
-git clone https://github.com/<pseudo>/revues-de-code.git
+git clone https://github.com/<porteur>/revues-de-code.git
 cd revues-de-code
-
-# 3. Récupérer la branche du TD et créer sa branche de travail
 git fetch origin
-git checkout -b td1-<pseudo> origin/td1
-
-# 4. Travailler : annoter le code sur github.com (PR) puis corriger
-#    (modifier les fichiers, puis :)
-git add .
-git commit -m "TD1 : corrections proposées (liste des problèmes corrigés)"
-git push origin td1-<pseudo>
-
-# 5. Ouvrir la PR depuis github.com : votre branche  →  branche principale
-#    du dépôt du cours. Compléter le corps avec le modèle fourni.
+git checkout -b 2026-IUT-BUT3-DUPONT-td1 origin/td1
 ```
 
-Conseil : la branche du TD peut évoluer (correctifs d'énoncé). Pour la
-récupérer : `git fetch origin && git merge origin/td1` sur votre branche.
+(remplacer `2026-IUT-BUT3-DUPONT` par le préfixe du groupe)
 
-## Consignes transverses (chaque TD)
+### Étape 4 — Remplir `GROUPE.md`
 
-- Le **corps de la PR** décrit votre revue : utilisez le modèle fourni.
-- **Un commentaire = un problème**, posé sur la bonne ligne du diff.
-- Les commentaires suivent les **attitudes du Module 1** : sur le code, pas
-  sur la personne ; expliquer le *pourquoi* ; suggérer, ne pas imposer.
-- Appliquez la **checklist de revue** ([`templates/checklist-revue.md`](../templates/checklist-revue.md)).
-- Nommez la PR : `TD1 – <pseudo> – revue de <fichiers>`.
-- Laissez la PR **ouverte** jusqu'à la correction.
-
-## Suivi des rendus (côté enseignant)
+Ouvrir `GROUPE.md` (à la racine), renseigner le préfixe, le porteur, les
+membres, et le TD. Ne pas toucher à la section Note.
 
 ```sh
-scripts/check-submissions.sh            # liste des PR ouvertes = qui a rendu
-scripts/check-submissions.sh <org/repo> # autre dépôt
+git add GROUPE.md
+git commit -m "GROUPE : identification du groupe"
 ```
 
-## Grille de notation (évaluation manuelle)
+### Étape 5 — Ouvrir la pull request
+
+github.com → le fork du groupe → onglet **Pull requests** → **New pull
+request** :
+
+- **base :** la branche principale du dépôt du cours
+  (`IUT-BUT3-2026/revues-de-code`, branche `master`)
+- **compare :** `2026-IUT-BUT3-DUPONT-td1` (depuis le fork du groupe)
+- **titre :** `2026-IUT-BUT3-DUPONT — TD1 — revue de cart.ts`
+- **corps :** compléter le modèle fourni automatiquement
+
+Le diff de la PR doit montrer : `GROUPE.md` modifié + les fichiers du TD.
+
+### Étape 6 — Annoter le code (la revue)
+
+Sur l'onglet **Files changed** de la PR : cliquer sur une ligne pour la
+commenter. **Un commentaire = un problème**, avec le *pourquoi*. Minimum par
+TD indiqué dans l'énoncé (ex. 5 problèmes).
+
+### Étape 7 — Corriger et pousser
+
+Corriger au moins le nombre de problèmes exigé, puis :
+
+```sh
+git add .
+git commit -m "TD1 : corrections proposées"
+git push origin 2026-IUT-BUT3-DUPONT-td1
+```
+
+La PR se met à jour automatiquement à chaque push.
+
+### Étape 8 — Rendre
+
+- Laisser la PR **ouverte** (c'est le rendu).
+- Coller le **lien de la PR** dans la section « Rendu » de `GROUPE.md`,
+  commit et push.
+- Déposer le lien également à l'endroit indiqué par l'enseignant (Moodle…).
+
+## 5. Consignes de revue (chaque TD)
+
+- Appliquer la [checklist de revue](../templates/checklist-revue.md).
+- **Attitudes du Module 1** : sur le code, pas sur la personne ; expliquer le
+  *pourquoi* ; suggérer, ne pas imposer.
+- L'enseignant note **à la main** chaque PR ; la qualité de la revue (pas
+  seulement les corrections) compte dans la note.
+
+## 6. Suivi des rendus (côté enseignant)
+
+```sh
+scripts/check-submissions.sh            # PR ouvertes = groupes ayant rendu
+```
+
+## 7. Grille de notation (évaluation manuelle)
 
 | Critère | Points |
 |---------|--------|
@@ -74,6 +135,8 @@ scripts/check-submissions.sh <org/repo> # autre dépôt
 | Ton constructif (sur le code, suggestions) | /2 |
 | Complétude (checklist couverte, cas limites vus) | /3 |
 | Corps de PR clair (contexte, choix, difficultés) | /2 |
-| Réponses aux commentaires (si applicable) | /2 |
+| `GROUPE.md` complet (membres, lien) | /2 |
+
+La note de chaque membre est reportée dans `GROUPE.md` (section Note).
 
 Les énoncés de chaque TD vivent sur leur branche (`td1/README.md`, `td2/…`).
