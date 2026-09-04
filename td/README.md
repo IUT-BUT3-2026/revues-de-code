@@ -27,16 +27,16 @@ du porteur** (sans accent, en majuscules) :
 Le préfixe permet à l'enseignant d'identifier immédiatement le groupe, la
 promotion et l'année dans la liste des PR.
 
-## 3. La fiche `GROUPE.md` (obligatoire, notée)
+## 3. La fiche `ETUDIANTS.md` (obligatoire, notée)
 
-Le fichier **`GROUPE.md`** est fourni à la racine du dépôt. Il doit être
+Le fichier **`ETUDIANTS.md`** est fourni à la racine du dépôt. Il doit être
 **rempli et présent dans la PR** :
 
 - membres du groupe (nom d'état civil + pseudo GitHub) ;
 - rôle de chacun (porteur / membre) ;
 - TD et lien de la PR.
 
-La section **Note** est réservée à l'enseignant. Un `GROUPE.md` absent ou
+La section **Note** est réservée à l'enseignant. Un `ETUDIANTS.md` absent ou
 incomplet rend le rendu incomplet.
 
 ## 4. Déroulé précis (fork + PR), étape par étape
@@ -63,14 +63,14 @@ git checkout -b 2026-IUT-BUT3-DUPONT-td1 origin/td1
 
 (remplacer `2026-IUT-BUT3-DUPONT` par le préfixe du groupe)
 
-### Étape 4 — Remplir `GROUPE.md`
+### Étape 4 — Remplir `ETUDIANTS.md`
 
-Ouvrir `GROUPE.md` (à la racine), renseigner le préfixe, le porteur, les
+Ouvrir `ETUDIANTS.md` (à la racine), renseigner le préfixe, le porteur, les
 membres, et le TD. Ne pas toucher à la section Note.
 
 ```sh
-git add GROUPE.md
-git commit -m "GROUPE : identification du groupe"
+git add ETUDIANTS.md
+git commit -m "ETUDIANTS : identification du groupe"
 ```
 
 ### Étape 5 — Ouvrir la pull request
@@ -84,7 +84,7 @@ request** :
 - **titre :** `2026-IUT-BUT3-DUPONT — TD1 — revue de cart.ts`
 - **corps :** compléter le modèle fourni automatiquement
 
-Le diff de la PR doit montrer : `GROUPE.md` modifié + les fichiers du TD.
+Le diff de la PR doit montrer : `ETUDIANTS.md` modifié + les fichiers du TD.
 
 ### Étape 6 — Annoter le code (la revue)
 
@@ -107,7 +107,7 @@ La PR se met à jour automatiquement à chaque push.
 ### Étape 8 — Rendre
 
 - Laisser la PR **ouverte** (c'est le rendu).
-- Coller le **lien de la PR** dans la section « Rendu » de `GROUPE.md`,
+- Coller le **lien de la PR** dans la section « Rendu » de `ETUDIANTS.md`,
   commit et push.
 - Déposer le lien également à l'endroit indiqué par l'enseignant (Moodle…).
 
@@ -125,7 +125,7 @@ La PR se met à jour automatiquement à chaque push.
 scripts/check-submissions.sh            # PR ouvertes = groupes ayant rendu
 ```
 
-**Saisie des notes :** dans la PR du groupe, ouvrir `GROUPE.md` (onglet
+**Saisie des notes :** dans la PR du groupe, ouvrir `ETUDIANTS.md` (onglet
 *Files changed*) et cliquer sur l'icône crayon ✏️ pour éditer le fichier sur
 la branche de la PR : remplir la section **Note** (note /20 + remarques par
 étudiant) et valider. Le commit de note fait partie de la PR — l'étudiant
@@ -142,8 +142,8 @@ de revue de la PR.)
 | Ton constructif (sur le code, suggestions) | /2 |
 | Complétude (checklist couverte, cas limites vus) | /3 |
 | Corps de PR clair (contexte, choix, difficultés) | /2 |
-| `GROUPE.md` complet (membres, lien) | /2 |
+| `ETUDIANTS.md` complet (membres, lien) | /2 |
 
-La note de chaque membre est reportée dans `GROUPE.md` (section Note).
+La note de chaque membre est reportée dans `ETUDIANTS.md` (section Note).
 
 Les énoncés de chaque TD vivent sur leur branche (`td1/README.md`, `td2/…`).

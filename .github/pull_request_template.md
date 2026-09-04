@@ -1,7 +1,7 @@
 ## Groupe
 
 - **Préfixe :** `<année>-<etablissement>-<groupe>` — ex. `2026-IUT-BUT3-DUPONT`
-- [ ] `GROUPE.md` rempli à la racine (membres + pseudos GitHub)
+- [ ] `ETUDIANTS.md` rempli à la racine (membres + pseudos GitHub)
 - [ ] Titre de la PR préfixé : `2026-IUT-BUT3-DUPONT — TD1 — revue de …`
 
 ## Revue de code — TD
