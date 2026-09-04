@@ -7,6 +7,11 @@ un point que la spec ne précise pas. Voir `.claude/skills/tdd-agentic`.
 **Q1, Q2 et Q3 sont désormais tranchées et implémentées** (voir statuts
 ci-dessous). Toute la story « Damage and Health » est couverte.
 
+**Story « Levels » en cours** — Level (départ 1), plafond de santé 1500 au
+niveau 6, modificateurs de dégâts ±50% selon l'écart de niveau sont
+implémentés. Une question latente (Q4, non encore bloquante) est notée
+ci-dessous.
+
 ---
 
 ## Q1 — Un personnage ne peut pas s'infliger de dégâts à lui-même
@@ -94,6 +99,26 @@ portant désormais les deux rôles (valeur de départ = plafond).
 
 ---
 
+## Q4 (latente, non bloquante) — Arrondi des dégâts modifiés par l'écart de niveau
+
+**Spec en cause :** *« Damage is reduced/increased by 50% »* — aucun cas
+testé jusqu'ici ne produit de valeur non entière (100 × 0.5 = 50,
+100 × 1.5 = 150, tous ronds).
+
+**Cas d'entrée qui la déclencherait :** un montant de dégâts impair avec un
+modificateur actif, ex. `dealDamage(target, 101)` avec écart de niveau ≥ 5
+→ `50.5`. `Character.health` accepte aujourd'hui des `number` non entiers
+sans contrainte — le comportement actuel (pas d'arrondi) reste cohérent
+tant qu'aucun test n'exige un entier.
+
+**Statut :** non bloquante — aucun comportement de la spec ne force
+actuellement ce cas. **Si un futur cycle introduit un montant de dégâts
+non multiple de 2, remonter la question avant de choisir un arrondi**
+(`Math.round`, `Math.floor`, ou valeurs décimales assumées) : ne pas
+trancher silencieusement à ce moment-là.
+
+---
+
 ## Comportements implémentés
 
 - Health démarre à 1000.
@@ -106,3 +131,7 @@ portant désormais les deux rôles (valeur de départ = plafond).
 - `character.dealDamage(character, amount)` lève une exception (Q1).
 - Un personnage mort (`!isAlive`) qui appelle `heal` lève une exception
   (Q2).
+- Un personnage démarre au niveau 1.
+- Le plafond de santé passe à 1500 à partir du niveau 6 (en dessous : 1000).
+- Les dégâts sont réduits de 50% si la cible a un niveau ≥ attaquant+5, et
+  augmentés de 50% si la cible a un niveau ≤ attaquant-5.

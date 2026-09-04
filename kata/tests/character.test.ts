@@ -13,6 +13,12 @@ describe("Character creation", () => {
 
     expect(character.isAlive).toBe(true);
   });
+
+  it("starts at level 1", () => {
+    const character = new Character();
+
+    expect(character.level).toBe(1);
+  });
 });
 
 describe("Dealing damage", () => {
@@ -33,6 +39,26 @@ describe("Dealing damage", () => {
 
     expect(target.health).toBe(0);
     expect(target.isAlive).toBe(false);
+  });
+
+  it("reduces damage by 50% when the target is 5 or more levels above the attacker", () => {
+    const attacker = new Character();
+    const target = new Character();
+    target.level = 6;
+
+    attacker.dealDamage(target, 100);
+
+    expect(target.health).toBe(950);
+  });
+
+  it("increases damage by 50% when the target is 5 or more levels below the attacker", () => {
+    const attacker = new Character();
+    attacker.level = 6;
+    const target = new Character();
+
+    attacker.dealDamage(target, 100);
+
+    expect(target.health).toBe(850);
   });
 
   it("throws when a character deals damage to itself", () => {
@@ -69,5 +95,16 @@ describe("Healing", () => {
     other.dealDamage(character, 1000);
 
     expect(() => character.heal(100)).toThrow();
+  });
+
+  it("caps health at 1500 from level 6 onward", () => {
+    const character = new Character();
+    character.level = 6;
+    const other = new Character();
+    other.dealDamage(character, 100);
+
+    character.heal(600);
+
+    expect(character.health).toBe(1500);
   });
 });

@@ -1,7 +1,17 @@
 const MAX_HEALTH = 1000;
+const HIGH_LEVEL_MAX_HEALTH = 1500;
+const HIGH_LEVEL_THRESHOLD = 6;
+const LEVEL_GAP_FOR_DAMAGE_MODIFIER = 5;
+const DAMAGE_REDUCTION_FACTOR = 0.5;
+const DAMAGE_INCREASE_FACTOR = 1.5;
 
 export class Character {
-  private currentHealth = MAX_HEALTH;
+  level = 1;
+  private currentHealth = this.maxHealth;
+
+  private get maxHealth(): number {
+    return this.level >= HIGH_LEVEL_THRESHOLD ? HIGH_LEVEL_MAX_HEALTH : MAX_HEALTH;
+  }
 
   get health(): number {
     return this.currentHealth;
@@ -15,14 +25,25 @@ export class Character {
     if (target === this) {
       throw new Error("A character cannot deal damage to itself");
     }
-    target.receiveDamage(amount);
+    target.receiveDamage(this.adjustDamageForLevelGap(amount, target));
+  }
+
+  private adjustDamageForLevelGap(amount: number, target: Character): number {
+    const levelGap = target.level - this.level;
+    if (levelGap >= LEVEL_GAP_FOR_DAMAGE_MODIFIER) {
+      return amount * DAMAGE_REDUCTION_FACTOR;
+    }
+    if (levelGap <= -LEVEL_GAP_FOR_DAMAGE_MODIFIER) {
+      return amount * DAMAGE_INCREASE_FACTOR;
+    }
+    return amount;
   }
 
   heal(amount: number): void {
     if (!this.isAlive) {
       throw new Error("A dead character cannot heal");
     }
-    this.currentHealth = Math.min(MAX_HEALTH, this.currentHealth + amount);
+    this.currentHealth = Math.min(this.maxHealth, this.currentHealth + amount);
   }
 
   private receiveDamage(amount: number): void {
