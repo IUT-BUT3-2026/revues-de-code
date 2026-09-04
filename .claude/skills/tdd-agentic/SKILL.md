@@ -26,6 +26,10 @@ elle-même.
 4. Chaque signal détecté pendant la boucle a un **niveau de responsabilité** :
    le code, la conception, ou la spécification. On corrige au bon niveau, on
    ne contourne pas dans le test.
+5. **Pas de nouveau cycle sans passer par la phase REFACTOR** : après chaque
+   vert, review du code (skill `clean-code`) et refactoring si besoin,
+   **avant** d'attaquer le comportement suivant. Enchaîner les red-green
+   sans jamais refactorer, c'est accumuler de la dette à chaque cycle.
 
 ## Phase 0 — SPEC : lire avant de penser
 
@@ -111,6 +115,11 @@ bonnes raisons**. Passer chaque rubrique en revue et agir sur les signaux :
 
 ## Phase 4 — REFACTOR : sous harnais vert
 
+⚠ **Phase obligatoire à chaque cycle** — pas une option. Avant de repartir
+sur un nouveau red-green, **reviewer** le code produit (checklist du skill
+`clean-code`) et refactorer ce qui doit l'être. « Rien à refactorer » est
+une **conclusion explicite après revue**, jamais un saut silencieux.
+
 1. Uniquement quand **tout est vert**.
 2. Petits pas ; relancer la suite **après chaque pas**.
 3. Refactorer le **code de production ET les tests** (lisibilité,
@@ -122,8 +131,9 @@ bonnes raisons**. Passer chaque rubrique en revue et agir sur les signaux :
    évidence). Si le refactor nécessaire change un comportement spécifié →
    **escalade spécification**, pas de décision unilatérale.
 
-Puis retour en **Phase 0/1** pour le comportement suivant, jusqu'à épuisement
-de la liste.
+Puis — et seulement une fois la revue faite et le harnais toujours vert —
+retour en **Phase 0/1** pour le comportement suivant, jusqu'à épuisement de
+la liste.
 
 ## Escalade spécification (supervision humaine)
 
