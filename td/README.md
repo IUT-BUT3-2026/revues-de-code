@@ -125,6 +125,13 @@ La PR se met à jour automatiquement à chaque push.
 scripts/check-submissions.sh            # PR ouvertes = groupes ayant rendu
 ```
 
+**Saisie des notes :** dans la PR du groupe, ouvrir `GROUPE.md` (onglet
+*Files changed*) et cliquer sur l'icône crayon ✏️ pour éditer le fichier sur
+la branche de la PR : remplir la section **Note** (note /20 + remarques par
+étudiant) et valider. Le commit de note fait partie de la PR — l'étudiant
+voit sa note en se connectant. (Alternative : déposer la note en commentaire
+de revue de la PR.)
+
 ## 7. Grille de notation (évaluation manuelle)
 
 | Critère | Points |
