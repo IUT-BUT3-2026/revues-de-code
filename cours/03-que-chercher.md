@@ -142,6 +142,10 @@ createUser(name, email, isAdmin, isActive, sendWelcomeMail, plan);
 createUser({ name, email, role: "admin", notify: true });
 ```
 
+---
+
+## 3. Smell n°3 — les mêmes principes en Python
+
 ```python
 # ✅ Python — mêmes principes
 creer_utilisateur(nom, email, role="admin", notifier=True)
@@ -225,16 +229,20 @@ const d = new Date();
 let x = getData(d);
 ```
 
-```python
-# ✅ Python — l'intention est lisible sans commentaire
-aujourdhui = date.today()
-rapports = generer_rapports(aujourdhui)
-```
-
 ```ts
 // ✅ TypeScript — même exigence
 const aujourdhui = new Date();
 const rapports = genererRapports(aujourdhui);
+```
+
+---
+
+## 4. Les noms — même principe en Python
+
+```python
+# ✅ Python — l'intention est lisible sans commentaire
+aujourdhui = date.today()
+rapports = generer_rapports(aujourdhui)
 ```
 
 > Un bon nom répond : *quoi ?* (variable), *pourquoi ?* (fonction), *dans quel but ?* (paramètre).
@@ -457,7 +465,9 @@ Après (étape 4) — on **dit** :
 total += item.subtotal();              // tell : on demande le résultat
 ```
 
-Pourquoi c'est important :
+---
+
+## 6. « Tell, Don't Ask » — pourquoi c'est important
 
 - la logique vit **là où sont les données** (dans `CartItem`) ;
 - si le calcul change (arrondi, TVA), on modifie **un seul endroit** ;
@@ -564,6 +574,10 @@ strategies = {"PROMO10": lambda p: p * 0.9, "PROMO50": lambda p: p * 0.5}
 def prix_final(prix: float, code: str) -> float:
     return strategies.get(code, lambda p: p)(prix)
 ```
+
+---
+
+## 7. Pattern : Strategy — même idée en TypeScript
 
 ```ts
 // ✅ TypeScript — même idée avec un objet
