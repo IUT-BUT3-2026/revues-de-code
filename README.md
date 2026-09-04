@@ -102,7 +102,8 @@ Détaillé dans [`td/README.md`](td/README.md) — commandes comprises.
 ├── README.md              ← ce fichier
 ├── ETUDIANTS.md           ← fiche équipe obligatoire (membres + note)
 ├── INSTALLATION.md        ← installation de Node.js / npm (Windows, Linux, macOS)
-├── cours/                 ← supports de cours (markdown)
+├── OUTILLAGE.md           ← génération des slides et PDF (Marp CLI)
+├── cours/                 ← supports de cours (markdown, format slides)
 │   └── 01-pourquoi-relire-le-code.md   (modules 2 à 6 à rédiger)
 ├── td/                    ← consignes générales des TD + workflow étudiant
 ├── td1/                   ← (sur la branche td1) énoncé + code à revoir
