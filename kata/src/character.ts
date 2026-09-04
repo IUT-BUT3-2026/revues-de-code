@@ -12,10 +12,16 @@ export class Character {
   }
 
   dealDamage(target: Character, amount: number): void {
+    if (target === this) {
+      throw new Error("A character cannot deal damage to itself");
+    }
     target.receiveDamage(amount);
   }
 
   heal(amount: number): void {
+    if (!this.isAlive) {
+      throw new Error("A dead character cannot heal");
+    }
     this.currentHealth = Math.min(MAX_HEALTH, this.currentHealth + amount);
   }
 

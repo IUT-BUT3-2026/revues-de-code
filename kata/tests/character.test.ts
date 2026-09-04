@@ -34,6 +34,12 @@ describe("Dealing damage", () => {
     expect(target.health).toBe(0);
     expect(target.isAlive).toBe(false);
   });
+
+  it("throws when a character deals damage to itself", () => {
+    const character = new Character();
+
+    expect(() => character.dealDamage(character, 100)).toThrow();
+  });
 });
 
 describe("Healing", () => {
@@ -55,5 +61,13 @@ describe("Healing", () => {
     character.heal(500);
 
     expect(character.health).toBe(1000);
+  });
+
+  it("throws when a dead character tries to heal", () => {
+    const character = new Character();
+    const other = new Character();
+    other.dealDamage(character, 1000);
+
+    expect(() => character.heal(100)).toThrow();
   });
 });

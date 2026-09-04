@@ -4,6 +4,9 @@ Comportements bloqués en phase THINK, story « Damage and Health »
 (`kata/rpg-combat.md`) : impossible de formuler une assertion sans trancher
 un point que la spec ne précise pas. Voir `.claude/skills/tdd-agentic`.
 
+**Q1, Q2 et Q3 sont désormais tranchées et implémentées** (voir statuts
+ci-dessous). Toute la story « Damage and Health » est couverte.
+
 ---
 
 ## Q1 — Un personnage ne peut pas s'infliger de dégâts à lui-même
@@ -29,7 +32,10 @@ qui est le signal le plus net et le moins ambigu à tester (`expect(() =>
 ...).toThrow()`), sans changer la signature déjà validée par les tests
 existants.
 
-**Statut :** en attente de décision humaine.
+**Statut :** ✅ **tranché par l'humain (2026-09-04) : option B — exception.**
+Implémenté (cycle think-red-green-refactor complet) : `dealDamage` lève
+`Error("A character cannot deal damage to itself")` quand la cible est
+`this`, vérifié en garde avant `receiveDamage`.
 
 ---
 
@@ -53,7 +59,10 @@ adopter la même politique d'erreur (exception) pour toutes les actions
 interdites du domaine (auto-dégât, soin d'un mort) plutôt que de mélanger
 les styles selon le cas.
 
-**Statut :** en attente de décision humaine — dépend de la réponse à Q1.
+**Statut :** ✅ **tranché par l'humain (2026-09-04) : option B — exception**
+(cohérent avec Q1). Implémenté (cycle think-red-green-refactor complet) :
+`heal` lève `Error("A dead character cannot heal")` quand `!isAlive`,
+vérifié en garde avant l'application du soin.
 
 ---
 
@@ -85,7 +94,7 @@ portant désormais les deux rôles (valeur de départ = plafond).
 
 ---
 
-## Comportements non bloqués (implémentés)
+## Comportements implémentés
 
 - Health démarre à 1000.
 - Un personnage démarre Alive.
@@ -93,4 +102,7 @@ portant désormais les deux rôles (valeur de départ = plafond).
 - Des dégâts qui dépassent `health` amènent `health` à 0 et `isAlive` à
   `false`.
 - `character.heal(amount)` augmente `character.health`, plafonné à 1000
-  (Q3 tranchée).
+  (Q3).
+- `character.dealDamage(character, amount)` lève une exception (Q1).
+- Un personnage mort (`!isAlive`) qui appelle `heal` lève une exception
+  (Q2).
