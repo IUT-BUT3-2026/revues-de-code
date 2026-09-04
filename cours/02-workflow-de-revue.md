@@ -246,7 +246,104 @@ Après le merge : **supprimer la branche**.
 
 ---
 
-## 12. La taille d'une PR
+## 12. Les modèles de branches — vue d'ensemble
+
+Trois grandes familles coexistent dans l'industrie :
+
+| Modèle | Principe |
+|--------|----------|
+| **GitHub Flow** | une branche longue (`main`), des branches de travail éphémères |
+| **Git Flow** | deux branches longues + branches de release et de hotfix |
+| **Trunk-Based** | une seule branche, des PR très petites et très fréquentes |
+
+Le GitHub Flow vu plus haut n'est pas le seul choix possible.
+Chaque modèle répond à des contraintes différentes.
+
+---
+
+## 12. Git Flow — le classique
+
+Proposé par Vincent Driessen (2010), très répandu en entreprise.
+
+- **`main`** : les versions publiées ;
+- **`develop`** : l'intégration en cours (branche longue) ;
+- **`feature/*`** : le travail, fusionné dans `develop` ;
+- **`release/*`** : préparation d'une version, vers `main` ;
+- **`hotfix/*`** : correctif urgent, directement vers `main`.
+
+---
+
+## 12. Git Flow — avantages et inconvénients
+
+**Avantages**
+
+- séparation stricte : ce qui est développé ≠ ce qui est publié ;
+- releases maîtrisées (version + correctifs ciblés) ;
+- hotfix possible sans embarquer les fonctionnalités en cours.
+
+**Inconvénients**
+
+- complexe : 5 types de branches, beaucoup de merges ;
+- lourd pour une petite équipe ou un cours ;
+- branches qui vivent longtemps → conflits plus fréquents.
+
+> À connaître — vous le retrouverez dans les entreprises qui publient des versions planifiées.
+
+---
+
+## 12. Trunk-Based Development — le principe
+
+Tout le monde travaille **directement sur `main`** (le *trunk*).
+
+- PR **très petites** : quelques heures de travail, pas des semaines ;
+- intégration **continue** : plusieurs merges par jour ;
+- branches de travail très courtes, souvent moins d'une journée ;
+- les gros chantiers passent par des **feature flags** (code livré mais masqué).
+
+---
+
+## 12. Trunk-Based — avantages et inconvénients
+
+**Avantages**
+
+- conflits **très rares** : personne ne s'éloigne longtemps de `main` ;
+- CI en permanence → on sait toujours si le code marche ;
+- feedback rapide, déploiement continu possible ;
+- revue légère (petits diffs).
+
+**Inconvénients**
+
+- exige une **CI solide** et une discipline d'équipe ;
+- difficile sans bons tests automatiques ;
+- gros chantiers impossibles sans feature flags ;
+- moins adapté aux releases planifiées très versionnées.
+
+---
+
+## 12. Comparaison des trois modèles
+
+| | GitHub Flow | Git Flow | Trunk-Based |
+|---|---|---|---|
+| Branches longues | 1 (`main`) | 2 (`main`, `develop`) | 1 (`main`) |
+| Durée d'une branche de travail | jours | jours à semaines | heures |
+| Intégration | par fonctionnalité | par release | continue |
+| Conflits | rares | fréquents | très rares |
+| Complexité | faible | élevée | faible |
+| Release versionnée | non | oui | via tags |
+
+---
+
+## 12. En résumé — et dans ce cours ?
+
+- **GitHub Flow** : simple, universel, pédagogique → **c'est notre modèle en TD** ;
+- **Trunk-Based** : les mêmes idées poussées à l'extrême (petites PR, intégration continue) ;
+- **Git Flow** : à connaître pour l'entreprise, mais trop lourd ici.
+
+> Le bon modèle dépend du contexte : taille de l'équipe, fréquence des releases, maturité de la CI.
+
+---
+
+## 13. La taille d'une PR
 
 > Une PR **petite** est revue plus vite, plus soigneusement, et avec moins de conflits.
 
@@ -260,7 +357,7 @@ Les PR énormes découragent le relecteur — et la revue devient superficielle.
 
 ---
 
-## 13. Titre et description — les bonnes pratiques
+## 14. Titre et description — les bonnes pratiques
 
 **Titre** (impératif, court) :
 
@@ -279,7 +376,7 @@ C'est la première chose que lit le relecteur. Soignez-la.
 
 ---
 
-## 14. Checklist de l'auteur — avant d'ouvrir la PR
+## 15. Checklist de l'auteur — avant d'ouvrir la PR
 
 - [ ] auto-revue du diff (Module 1) ;
 - [ ] tests passent localement ;
@@ -293,7 +390,7 @@ C'est la première chose que lit le relecteur. Soignez-la.
 
 ---
 
-## 15. Les conventions d'équipe
+## 16. Les conventions d'équipe
 
 Une équipe formalise ses habitudes dans le dépôt :
 
@@ -307,7 +404,7 @@ Une équipe formalise ses habitudes dans le dépôt :
 
 ---
 
-## 16. Récapitulatif — le workflow complet
+## 17. Récapitulatif — le workflow complet
 
 ```
 main ──► branche ──► commits ──► push ──► PR (titre + description)
@@ -324,7 +421,7 @@ C'est **exactement** ce que vous ferez en TD.
 
 ---
 
-## 17. Questions de compréhension
+## 18. Questions de compréhension
 
 1. Pourquoi `main` doit-elle toujours rester déployable ?
 2. Quelles sont les 6 étapes du GitHub Flow ?
@@ -334,6 +431,8 @@ C'est **exactement** ce que vous ferez en TD.
 6. Que contient une bonne description de PR ?
 7. Que signifie « protéger la branche `main` » ? Donnez deux règles typiques.
 8. Dans le diff d'une PR, que regardez-vous en premier ? Pourquoi ?
+9. Git Flow ou Trunk-Based : quel modèle pour une équipe de 3 étudiants sur un projet de cours ? Justifiez.
+10. Citez un avantage et un inconvénient de Git Flow, puis de Trunk-Based.
 
 ---
 
