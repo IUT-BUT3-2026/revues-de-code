@@ -269,56 +269,6 @@ function appliquerRemise(total: number, code: string): number { /* … */ }
 
 > En revue : « cette fonction peut-elle changer pour **deux raisons différentes** ? »
 
----
-
-## 6. Object Calisthenics — les 9 règles
-
-*Jeff Bay* — un exercice de style pour forcer un code sain :
-
-1. un seul niveau d'indentation par fonction ;
-2. pas de mot-clé `else` ;
-3. envelopper les primitifs (chaînes, nombres) dans des types ;
-4. collections de première classe (pas de tableaux nus partout) ;
-5. un seul point (`.`) par ligne ;
-6. pas d'abréviations ;
-7. tout garder petit (fonctions, classes, fichiers) ;
-8. pas plus de deux attributs par classe ;
-9. pas de getters/setters systématiques.
-
-> Un idéal, pas une loi — mais d'excellents réflexes de revue.
-
----
-
-## 6. Object Calisthenics — sans les règles (dirty)
-
-```ts
-// ❌ Sans calisthenics
-function calc(cart: { items: Item[] }): number {
-  let t = 0;
-  for (const it of cart.items) {
-    if (it.q > 0) {
-      if (it.p > 0) {
-        t += it.p * it.q;
-      } else {
-        throw new Error("bad item");
-      }
-    }
-  }
-  if (t > 100) {
-    return t * 0.9;
-  } else {
-    return t;
-  }
-}
-```
-
-Ce qu'un relecteur calisthenics voit d'un coup :
-
-- **3 niveaux d'indentation** (boucle + deux `if`) ;
-- deux **`else`** ;
-- **abréviations** : `calc`, `t`, `it`, `p`, `q` ;
-- **valeurs magiques** : `100`, `0.9` ;
-- tout dans **une seule fonction** qui calcule ET applique la remise.
 
 ---
 
@@ -345,8 +295,6 @@ function calculateTotal(cart: { items: Item[] }): number {
   }
 }
 ```
-
-`calc` → `calculateTotal` · `t` → `total` · `it` → `item` · `p` → `price` · `q` → `quantity`
 
 > Le code est déjà plus lisible — la structure, elle, n'a pas bougé.
 
@@ -475,11 +423,145 @@ total += item.subtotal();              // tell : on demande le résultat
 
 > En revue : repérez les chaînes qui « demandent » (`item.price * item.quantity`) — c'est souvent un *ask* qui devrait être un *tell*.
 
+
 ---
 
-## 6. Refactoring — étape 5 : le style fonctionnel (1/2)
+## 7. Object Calisthenics — les 9 règles
 
-**Smell corrigé : la boucle + l'état mutable** — remplacés par `filter` / `map` / `reduce`.
+*Jeff Bay* — un exercice de style pour forcer un code sain :
+
+1. un seul niveau d'indentation par fonction ;
+2. pas de mot-clé `else` ;
+3. envelopper les primitifs (chaînes, nombres) dans des types ;
+4. collections de première classe (pas de tableaux nus partout) ;
+5. un seul point (`.`) par ligne ;
+6. pas d'abréviations ;
+7. tout garder petit (fonctions, classes, fichiers) ;
+8. pas plus de deux attributs par classe ;
+9. pas de getters/setters systématiques.
+
+> Un idéal, pas une loi — mais d'excellents réflexes de revue.
+
+---
+
+## 7. Object Calisthenics — sans les règles (dirty)
+
+```ts
+// ❌ Sans calisthenics
+function calc(cart: { items: Item[] }): number {
+  let t = 0;
+  for (const it of cart.items) {
+    if (it.q > 0) {
+      if (it.p > 0) {
+        t += it.p * it.q;
+      } else {
+        throw new Error("bad item");
+      }
+    }
+  }
+  if (t > 100) {
+    return t * 0.9;
+  } else {
+    return t;
+  }
+}
+```
+
+---
+
+## 7. Dirty — ce qu'un relecteur calisthenics voit
+
+Ce qu'un relecteur calisthenics voit d'un coup :
+
+- **3 niveaux d'indentation** (boucle + deux `if`) ;
+- deux **`else`** ;
+- **abréviations** : `calc`, `t`, `it`, `p`, `q` ;
+- **valeurs magiques** : `100`, `0.9` ;
+- tout dans **une seule fonction** qui calcule ET applique la remise.
+
+---
+
+## 7. Object Calisthenics — avec les règles (clean)
+
+```ts
+// ✅ Avec calisthenics
+type Money = number;   // primitif enveloppé
+
+class CartItem {
+  constructor(
+    private readonly name: string,
+    private readonly price: Money,
+    private readonly quantity: number,
+  ) {}
+
+  subtotal(): Money {
+    return this.price * this.quantity;
+  }
+}
+
+function calculateTotal(cart: CartItem[]): Money {
+  let total = 0;
+  for (const item of cart) {
+    total += item.subtotal();
+  }
+  return applyDiscount(total);
+}
+
+function applyDiscount(total: Money): Money {
+  if (total > DISCOUNT_THRESHOLD) return total * DISCOUNT_RATE;
+  return total;
+}
+
+const DISCOUNT_THRESHOLD = 100;
+const DISCOUNT_RATE = 0.9;
+```
+
+- noms **complets** — pas d'abréviations ;
+- **constantes nommées** — pas de valeurs magiques ;
+- pas de **`else`** — retours anticipés ;
+- **un niveau d'indentation**, fonctions courtes ;
+- primitifs **enveloppés** (`Money`, `CartItem`).
+
+---
+
+## 7. Object Calisthenics — le chemin parcouru
+
+| Étape | Smell corrigé | Résultat |
+|-------|---------------|----------|
+| 1 | abréviations | noms complets |
+| 2 | valeurs magiques | constantes nommées |
+| 3 | `else` + indentation | gardes, chemin normal |
+| 4 | responsabilités + primitifs nus | fonctions courtes, types enveloppés |
+| 5 | boucle + état mutable | `filter` / `map` / `reduce` → chapitre 8 |
+
+> **Un refactoring se fait un smell à la fois.** À chaque étape, le code compile, fonctionne, et les tests passent. On s'arrête dès que le code est « assez bien » pour être relu.
+
+---
+
+## 7. Object Calisthenics — 3 règles illustrées
+
+**Pas de `else`** — le retour anticipé simplifie :
+
+```ts
+// ❌
+function statut(age: number): string {
+  if (age >= 18) { return "majeur"; } else { return "mineur"; }
+}
+// ✅
+function statut(age: number): string {
+  if (age >= 18) return "majeur";
+  return "mineur";
+}
+```
+
+**Pas d'abréviations** : `calcTot()` → `calculerTotal()`.
+**Un niveau d'indentation** : sortir les boucles imbriquées dans des fonctions nommées.
+
+---
+
+## 8. Le style fonctionnel — filter / map / reduce (1/2)
+
+**Un pas de plus : la boucle + l'état mutable** — remplacés par `filter` / `map` / `reduce`.
 
 ```ts
 class CartItem {
@@ -503,7 +585,7 @@ function calculateTotal(cart: CartItem[]): Money {
 
 ---
 
-## 6. Refactoring — étape 5 : pourquoi c'est mieux (2/2)
+## 8. Le style fonctionnel — pourquoi c'est mieux (2/2)
 
 - `isInStock()` est un **prédicat** (Tell, Don't Ask) — pas un getter ;
 - moins d'**état mutable** → moins de surprises pour le relecteur ;
@@ -514,42 +596,7 @@ function calculateTotal(cart: CartItem[]): Money {
 
 ---
 
-## 6. Object Calisthenics — le chemin parcouru
-
-| Étape | Smell corrigé | Résultat |
-|-------|---------------|----------|
-| 1 | abréviations | noms complets |
-| 2 | valeurs magiques | constantes nommées |
-| 3 | `else` + indentation | gardes, chemin normal |
-| 4 | responsabilités + primitifs nus | fonctions courtes, types enveloppés |
-| 5 | boucle + état mutable | `filter` / `map` / `reduce` — style fonctionnel |
-
-> **Un refactoring se fait un smell à la fois.** À chaque étape, le code compile, fonctionne, et les tests passent. On s'arrête dès que le code est « assez bien » pour être relu.
-
----
-
-## 6. Object Calisthenics — 3 règles illustrées
-
-**Pas de `else`** — le retour anticipé simplifie :
-
-```ts
-// ❌
-function statut(age: number): string {
-  if (age >= 18) { return "majeur"; } else { return "mineur"; }
-}
-// ✅
-function statut(age: number): string {
-  if (age >= 18) return "majeur";
-  return "mineur";
-}
-```
-
-**Pas d'abréviations** : `calcTot()` → `calculerTotal()`.
-**Un niveau d'indentation** : sortir les boucles imbriquées dans des fonctions nommées.
-
----
-
-## 7. Les patterns — c'est quoi ?
+## 9. Les patterns — c'est quoi ?
 
 > **Définition** — Un *design pattern* est une **solution éprouvée** à un problème de conception récurrent, décrite avec un nom, un problème et une solution.
 
@@ -559,7 +606,7 @@ function statut(age: number): string {
 
 ---
 
-## 7. Pattern : Strategy — remplacer les if/else
+## 9. Pattern : Strategy — remplacer les if/else
 
 ```ts
 // ❌ TypeScript — une cascade de conditions qui grossira
@@ -577,7 +624,7 @@ def prix_final(prix: float, code: str) -> float:
 
 ---
 
-## 7. Pattern : Strategy — même idée en TypeScript
+## 9. Pattern : Strategy — même idée en TypeScript
 
 ```ts
 // ✅ TypeScript — même idée avec un objet
@@ -591,7 +638,7 @@ const STRATEGIES: Record<string, (p: number) => number> = {
 
 ---
 
-## 7. Quelques patterns à reconnaître
+## 9. Quelques patterns à reconnaître
 
 | Pattern | Problème résolu | Indice en revue |
 |---------|-----------------|-----------------|
@@ -605,7 +652,7 @@ const STRATEGIES: Record<string, (p: number) => number> = {
 
 ---
 
-## 7. Les anti-patterns à signaler
+## 9. Les anti-patterns à signaler
 
 | Anti-pattern | Symptôme |
 |--------------|----------|
@@ -619,7 +666,7 @@ const STRATEGIES: Record<string, (p: number) => number> = {
 
 ---
 
-## 8. La testabilité — concevoir pour pouvoir tester
+## 10. La testabilité — concevoir pour pouvoir tester
 
 *(Les tests eux-mêmes sont vus dans un autre cours. Ici : concevoir pour qu'ils soient possibles.)*
 
@@ -633,7 +680,7 @@ Un code **testable** est :
 
 ---
 
-## 8. Dépendances injectées, pas créées en dur
+## 10. Dépendances injectées, pas créées en dur
 
 ```ts
 // ❌ TypeScript — impossible à tester sans vraie base
@@ -658,7 +705,7 @@ class Facture:
 
 ---
 
-## 8. Fonctions pures, effets de bord maîtrisés
+## 10. Fonctions pures, effets de bord maîtrisés
 
 ```ts
 // ❌ TypeScript — effet de bord caché (état global modifié)
@@ -683,7 +730,7 @@ def nouveau_solde(solde: float, montant: float) -> float:
 
 ---
 
-## 9. Récapitulatif — la checklist « conception » du relecteur
+## 11. Récapitulatif — la checklist « conception » du relecteur
 
 - [ ] le code est-il **plus simple** que nécessaire ? (KISS, YAGNI)
 - [ ] pas de **duplication** ? (DRY)
@@ -696,7 +743,7 @@ def nouveau_solde(solde: float, montant: float) -> float:
 
 ---
 
-## 10. Questions de compréhension
+## 12. Questions de compréhension
 
 1. Dans quel ordre traiter les 4 niveaux d'une revue ? Pourquoi ?
 2. Citez les 4 règles du design simple (Beck).
