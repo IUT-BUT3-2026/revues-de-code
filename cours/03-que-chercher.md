@@ -1,0 +1,465 @@
+---
+marp: true
+theme: default
+---
+
+# Module 3 — Que chercher dans une revue ? La conception
+
+**Revue de code — Programmation logicielle** · Bachelor informatique
+
+À la fin de cette séance, vous saurez :
+
+- hiérarchiser une revue : bugs → **conception** → lisibilité → style ;
+- reconnaître les **code smells** les plus fréquents ;
+- appliquer le **design simple** (KISS, YAGNI) ;
+- connaître les règles d'**Object Calisthenics** ;
+- repérer les **patterns** et les **anti-patterns** courants ;
+- évaluer la **testabilité** d'un code (sans parler des tests eux-mêmes).
+
+Les exemples sont donnés dans **plusieurs langages** :
+les principes sont universels.
+
+---
+
+## 1. Les 4 niveaux d'une revue
+
+```
+1. Comportement et logique   (bugs, cas limites)      ← Module 1
+2. CONCEPTION                (design, patterns, …)    ← ce module
+3. Lisibilité                (noms, clarté)
+4. Style                     (formatage → le linter s'en charge)
+```
+
+On traite les niveaux **dans cet ordre** : d'abord ce qui casse,
+ensuite ce qui coûte cher à maintenir.
+
+> Un bug est corrigé une fois. Une mauvaise conception se paie tous les jours.
+
+---
+
+## 2. Le design simple — 4 règles
+
+> *Kent Beck* — un code bien conçu, c'est un code qui respecte 4 règles, dans l'ordre :
+
+1. **Passe les tests** (il fait ce qu'il doit faire) ;
+2. **Exprime l'intention** (on comprend pourquoi il existe) ;
+3. **Ne duplique pas** (chaque connaissance existe une seule fois) ;
+4. **Est minimal** (rien d'inutile — KISS, YAGNI).
+
+KISS : *Keep It Simple* — YAGNI : *You Ain't Gonna Need It*.
+
+> En revue : « ce code est-il **plus simple** que nécessaire ? »
+
+---
+
+## 2. Design simple — le sur-engineering
+
+```ts
+// ❌ YAGNI : on prévoit des choses dont personne n'a besoin
+interface Config { retryCount: number; cacheTTL: number; /* … */ }
+const config: Config = { retryCount: 3, cacheTTL: 60 };
+```
+
+```python
+# ✅ Ce dont on a vraiment besoin, rien de plus
+CONFIG = {"retry": 3}
+```
+
+> Le code « au cas où » devient du code mort… ou pire, du code buggé que personne ne teste.
+
+---
+
+## 3. Les code smells — c'est quoi ?
+
+> **Définition** — Un *code smell* est un symptôme dans le code qui suggère un problème plus profond de conception.
+
+Ce n'est pas une erreur (ça compile, ça marche) —
+c'est un signal que le code **coûtera cher à maintenir**.
+
+Les smells ne se détectent ni au compilateur, ni au linter :
+**c'est le rôle du relecteur.**
+
+---
+
+## 3. Smell n°1 — la duplication (DRY)
+
+La même logique recopiée à plusieurs endroits.
+
+```ts
+// ❌ TypeScript
+const total1 = sousTotal + sousTotal * 0.2;
+// … 50 lignes plus loin
+const total2 = sousTotal2 + sousTotal2 * 0.2;
+```
+
+```python
+# ✅ Python — une seule source de vérité
+def appliquer_tva(ht: float) -> float:
+    return ht * 1.2
+
+total1 = appliquer_tva(sous_total)
+total2 = appliquer_tva(sous_total2)
+```
+
+> Dupliquer = corriger deux fois chaque bug. DRY : *Don't Repeat Yourself*.
+
+---
+
+## 3. Smell n°2 — fonction trop longue
+
+Une fonction qui fait tout : calcul, affichage, sauvegarde…
+
+```python
+# ❌ Python : 3 responsabilités en une
+def traiter_commande(commande):
+    total = sum(p.prix for p in commande)
+    print(f"Total : {total}")
+    sauvegarder(commande)
+```
+
+```ts
+// ✅ TypeScript : une fonction = une responsabilité
+function calculerTotal(commande: Commande): number { /* … */ }
+function afficherTotal(total: number): void { /* … */ }
+function sauvegarderCommande(commande: Commande): void { /* … */ }
+```
+
+> 10 lignes par fonction, une seule raison de changer.
+
+---
+
+## 3. Smell n°3 — trop de paramètres
+
+Plus de 3-4 paramètres → difficile à lire, à appeler, à tester.
+
+```ts
+// ❌ TypeScript
+createUser(name, email, isAdmin, isActive, sendWelcomeMail, plan);
+```
+
+```ts
+// ✅ Regrouper ce qui va ensemble
+createUser({ name, email, role: "admin", notify: true });
+```
+
+```python
+# ✅ Python — mêmes principes
+creer_utilisateur(nom, email, role="admin", notifier=True)
+```
+
+> Le **booléen en paramètre** est un signal : deux comportements dans une seule fonction.
+
+---
+
+## 3. Smell n°4 — les valeurs magiques
+
+Des nombres ou chaînes en dur, sans signification.
+
+```ts
+// ❌ TypeScript
+if (age < 18) { /* … */ }
+```
+
+```python
+# ✅ Python — le nom dit l'intention
+AGE_MAJORITE = 18
+
+if age < AGE_MAJORITE:
+    ...
+```
+
+```ts
+// ✅ TypeScript — même principe, même syntaxe
+const MAJORITE = 18;
+if (age < MAJORITE) { /* … */ }
+```
+
+---
+
+## 3. Smell n°5 — les commentaires « quoi »
+
+Le code raconte *quoi* ; le commentaire doit dire *pourquoi*.
+
+```ts
+// ❌ TypeScript : le commentaire répète le code
+x = x + 1;  // incrémente x
+
+// ✅ Le pourquoi
+total = total + remise;  // la remise s'applique avant les frais de port
+```
+
+```python
+# ❌
+resultat = donnees[0]  # prend le premier élément
+```
+
+> Un commentaire qui explique le code = code mal nommé.
+> Un commentaire qui explique la décision = précieux.
+
+---
+
+## 3. Smell n°6 — le code mort
+
+Du code que plus personne n'utilise.
+
+```ts
+// ❌ TypeScript : jamais appelé nulle part
+function legacyImport(): void { /* … */ }
+```
+
+- fonctions inutilisées, paramètres jamais lus, variables assignées jamais utilisées ;
+- du code commenté (c'est ce que dit git, lui) ;
+- des branches « au cas où » (YAGNI).
+
+> Le code mort est du poids mort : on le lit, on hésite, on n'ose pas le supprimer.
+
+---
+
+## 4. Les noms — la base de tout
+
+Nommer, c'est **documenter** — et ça n'a pas de prix en revue.
+
+```ts
+// ❌ TypeScript
+const d = new Date();
+let x = getData(d);
+```
+
+```python
+# ✅ Python — l'intention est lisible sans commentaire
+aujourdhui = date.today()
+rapports = generer_rapports(aujourdhui)
+```
+
+```ts
+// ✅ TypeScript — même exigence
+const aujourdhui = new Date();
+const rapports = genererRapports(aujourdhui);
+```
+
+> Un bon nom répond : *quoi ?* (variable), *pourquoi ?* (fonction), *dans quel but ?* (paramètre).
+
+---
+
+## 5. Une responsabilité par fonction
+
+Une fonction qui a **plusieurs raisons de changer** est fragile.
+
+```ts
+// ❌ TypeScript : le calcul ET la validation mélangés
+function prixAvecRemise(panier: Panier, code: string): number {
+  if (code.length !== 6) throw new Error("code invalide");
+  return panier.total() * 0.9;
+}
+```
+
+```ts
+// ✅ Séparer les préoccupations
+function validerCode(code: string): void { /* … */ }
+function appliquerRemise(total: number, code: string): number { /* … */ }
+```
+
+> En revue : « cette fonction peut-elle changer pour **deux raisons différentes** ? »
+
+---
+
+## 6. Object Calisthenics — les 9 règles
+
+*Jeff Bay* — un exercice de style pour forcer un code sain :
+
+1. un seul niveau d'indentation par fonction ;
+2. pas de mot-clé `else` ;
+3. envelopper les primitifs (chaînes, nombres) dans des types ;
+4. collections de première classe (pas de tableaux nus partout) ;
+5. un seul point (`.`) par ligne ;
+6. pas d'abréviations ;
+7. tout garder petit (fonctions, classes, fichiers) ;
+8. pas plus de deux attributs par classe ;
+9. pas de getters/setters systématiques.
+
+> Un idéal, pas une loi — mais d'excellents réflexes de revue.
+
+---
+
+## 6. Object Calisthenics — 3 règles illustrées
+
+**Pas de `else`** — le retour anticipé simplifie :
+
+```ts
+// ❌
+function statut(age: number): string {
+  if (age >= 18) { return "majeur"; } else { return "mineur"; }
+}
+// ✅
+function statut(age: number): string {
+  if (age >= 18) return "majeur";
+  return "mineur";
+}
+```
+
+**Pas d'abréviations** : `calcTot()` → `calculerTotal()`.
+**Un niveau d'indentation** : sortir les boucles imbriquées dans des fonctions nommées.
+
+---
+
+## 7. Les patterns — c'est quoi ?
+
+> **Définition** — Un *design pattern* est une **solution éprouvée** à un problème de conception récurrent, décrite avec un nom, un problème et une solution.
+
+- ce sont des **conventions nommées** : dire « c'est un Strategy » résume toute une solution ;
+- les reconnaître en revue, c'est comprendre l'intention de l'auteur ;
+- **attention** : un pattern inutile est un sur-engineering (YAGNI).
+
+---
+
+## 7. Pattern : Strategy — remplacer les if/else
+
+```ts
+// ❌ TypeScript — une cascade de conditions qui grossira
+if (code === "PROMO10") { return prix * 0.9; }
+if (code === "PROMO50") { return prix * 0.5; }
+```
+
+```python
+# ✅ Python — une table de stratégies
+strategies = {"PROMO10": lambda p: p * 0.9, "PROMO50": lambda p: p * 0.5}
+
+def prix_final(prix: float, code: str) -> float:
+    return strategies.get(code, lambda p: p)(prix)
+```
+
+```ts
+// ✅ TypeScript — même idée avec un objet
+const STRATEGIES: Record<string, (p: number) => number> = {
+  PROMO10: (p) => p * 0.9,
+  PROMO50: (p) => p * 0.5,
+};
+```
+
+> Ajouter un code promo = ajouter une entrée. Sans toucher à la fonction.
+
+---
+
+## 7. Quelques patterns à reconnaître
+
+| Pattern | Problème résolu | Indice en revue |
+|---------|-----------------|-----------------|
+| **Factory** | construire des objets selon un contexte | `create…()`, `build…()` |
+| **Observer** | notifier des dépendants sans les connaître | abonnements, `listen()` |
+| **Adapter** | brancher deux interfaces incompatibles | classes `…Adapter` |
+| **Decorator** | enrichir sans modifier | enveloppes, `with…()` |
+| **Strategy** | varier un comportement | tables de fonctions, `switch` remplacé |
+
+> Savoir les nommer, c'est pouvoir discuter de la solution en un mot.
+
+---
+
+## 7. Les anti-patterns à signaler
+
+| Anti-pattern | Symptôme |
+|--------------|----------|
+| **God Object** | une classe/fonction qui sait tout, fait tout |
+| **Spaghetti** | enchaînements illisibles, sauts de responsabilité |
+| **Golden Hammer** | « tout est un clou » : le même outil partout |
+| **Copier-coller** | la duplication élevée en art |
+| **Optimisation prématurée** | complexité ajoutée sans mesure de besoin |
+
+> En revue, nommer l'anti-pattern aide à discuter — sans juger la personne.
+
+---
+
+## 8. La testabilité — concevoir pour pouvoir tester
+
+*(Les tests eux-mêmes sont vus dans un autre cours. Ici : concevoir pour qu'ils soient possibles.)*
+
+Un code **testable** est :
+
+- **déterministe** : mêmes entrées → mêmes sorties ;
+- **découplé** : on peut remplacer l'infrastructure (base de données, réseau, horloge) ;
+- **sans état global** caché.
+
+> Si c'est dur à tester, c'est souvent mal conçu — le signal vaut pour les deux.
+
+---
+
+## 8. Dépendances injectées, pas créées en dur
+
+```ts
+// ❌ TypeScript — impossible à tester sans vraie base
+class Facture {
+  constructor() { this.db = new Database(); }
+}
+```
+
+```ts
+// ✅ La dépendance est fournie de l'extérieur
+class Facture {
+  constructor(private db: Database) {}
+}
+```
+
+```python
+# ✅ Python — même principe
+class Facture:
+    def __init__(self, db):   # on reçoit, on ne crée pas
+        self.db = db
+```
+
+---
+
+## 8. Fonctions pures, effets de bord maîtrisés
+
+```ts
+// ❌ TypeScript — effet de bord caché (état global modifié)
+let solde = 0;
+function ajouterAuSolde(montant: number): void {
+  solde += montant;
+}
+```
+
+```ts
+// ✅ Fonction pure : entrée → sortie, sans surprise
+function nouveauSolde(solde: number, montant: number): number {
+  return solde + montant;
+}
+```
+
+```python
+# ✅ Python — même principe
+def nouveau_solde(solde: float, montant: float) -> float:
+    return solde + montant
+```
+
+---
+
+## 9. Récapitulatif — la checklist « conception » du relecteur
+
+- [ ] le code est-il **plus simple** que nécessaire ? (KISS, YAGNI)
+- [ ] pas de **duplication** ? (DRY)
+- [ ] fonctions **courtes**, une responsabilité ?
+- [ ] pas de **valeurs magiques** ?
+- [ ] les **noms** disent l'intention ?
+- [ ] pas de **code mort** ?
+- [ ] la structure suit-elle un **pattern connu** (sans sur-ingénierie) ?
+- [ ] le code est-il **testable** (dépendances injectées, pas d'effets de bord cachés) ?
+
+---
+
+## 10. Questions de compréhension
+
+1. Dans quel ordre traiter les 4 niveaux d'une revue ? Pourquoi ?
+2. Citez les 4 règles du design simple (Beck).
+3. Donnez trois code smells et, pour chacun, un exemple de votre cru.
+4. Pourquoi un commentaire « quoi » est-il un signal de mauvaise conception ?
+5. Qu'est-ce qu'un design pattern ? Pourquoi les nommer aide-t-il la revue ?
+6. Citez deux règles d'Object Calisthenics et expliquez leur intérêt.
+7. Pourquoi une dépendance créée en dur (`new Database()`) gêne-t-elle la testabilité ?
+8. Prenez le code de votre dernier projet : trouvez-y deux smells vus aujourd'hui.
+
+---
+
+## Pour aller plus loin
+
+- **Module 4** — communiquer une revue : ton, feedback constructif, anti-patterns de communication
+- **Module 5** — les pièges TypeScript à traquer en revue
+- **TD** — application directe : les smells de ce module sont volontairement présents dans `td1`

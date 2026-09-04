@@ -105,7 +105,8 @@ Détaillé dans [`td/README.md`](td/README.md) — commandes comprises.
 ├── OUTILLAGE.md           ← génération des slides et PDF (Marp CLI)
 ├── cours/                 ← supports de cours (markdown, format slides)
 │   ├── 01-pourquoi-relire-le-code.md
-│   └── 02-workflow-de-revue.md         (modules 3 à 6 à rédiger)
+│   ├── 02-workflow-de-revue.md
+│   └── 03-que-chercher.md              (modules 4 à 6 à rédiger)
 ├── td/                    ← consignes générales des TD + workflow étudiant
 ├── td1/                   ← (sur la branche td1) énoncé + code à revoir
 ├── templates/             ← checklist de revue
