@@ -101,6 +101,7 @@ Détaillé dans [`td/README.md`](td/README.md) — commandes comprises.
 ```
 ├── README.md              ← ce fichier
 ├── GROUPE.md              ← fiche groupe obligatoire (membres + note)
+├── INSTALLATION.md        ← installation de Node.js / npm (Windows, Linux, macOS)
 ├── cours/                 ← supports de cours (markdown)
 │   └── 01-pourquoi-relire-le-code.md   (modules 2 à 6 à rédiger)
 ├── td/                    ← consignes générales des TD + workflow étudiant
