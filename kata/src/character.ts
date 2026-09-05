@@ -8,6 +8,31 @@ const DAMAGE_INCREASE_FACTOR = 1.5;
 export class Character {
   level = 1;
   private currentHealth = this.maxHealth;
+  private readonly factionNames: string[] = [];
+
+  get factions(): string[] {
+    return [...this.factionNames];
+  }
+
+  join(factionName: string): void {
+    this.factionNames.push(factionName);
+  }
+
+  leave(factionName: string): void {
+    const index = this.factionNames.indexOf(factionName);
+    if (index === -1) {
+      return;
+    }
+    this.factionNames.splice(index, 1);
+  }
+
+  isAllyOf(other: Character): boolean {
+    return this.factionNames.some((factionName) => other.hasFaction(factionName));
+  }
+
+  private hasFaction(factionName: string): boolean {
+    return this.factionNames.includes(factionName);
+  }
 
   private get maxHealth(): number {
     return this.level >= HIGH_LEVEL_THRESHOLD ? HIGH_LEVEL_MAX_HEALTH : MAX_HEALTH;

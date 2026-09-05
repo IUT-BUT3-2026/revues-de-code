@@ -11,6 +11,10 @@ ci-dessous). Toute la story « Damage and Health » est couverte.
 niveau 6, modificateurs de dégâts ±50% selon l'écart de niveau, et
 l'arrondi des dégâts modifiés (Q4) sont implémentés.
 
+**Story « Factions » en cours** — appartenance (aucune au départ),
+`join`/`leave`, `isAllyOf` sont implémentés. **Q5 et Q6 bloquent** la
+suite (dégâts/soin entre alliés et non-alliés), voir ci-dessous.
+
 ---
 
 ## Q1 — Un personnage ne peut pas s'infliger de dégâts à lui-même
@@ -118,6 +122,63 @@ Ex. `101 × 0.5 = 50.5 → 51` ; `101 × 1.5 = 151.5 → 152`.
 
 ---
 
+## Q5 — Les alliés ne peuvent pas se combattre
+
+**Spec en cause :** *« Allies cannot Deal Damage to one another »*
+**Cas d'entrée problématique :** `attacker.dealDamage(target, amount)`
+quand `attacker.isAllyOf(target)`.
+
+Même blocage que Q1 : la spec dit *que* c'est interdit, pas ce qui est
+**observable** quand on tente l'action.
+
+**Interprétations candidates :**
+
+| # | Comportement | Conséquences |
+|---|---|---|
+| A | No-op silencieux : `health` inchangé, pas d'erreur | Masque un appel invalide, incohérent avec Q1 |
+| B | Lève une exception | Cohérent avec Q1/Q2 : même politique d'erreur pour toute action interdite du domaine |
+| C | Retourne un statut | Change la signature déjà établie et testée |
+
+**Recommandation :** B, par cohérence stricte avec Q1 et Q2 — le domaine
+a déjà adopté « action interdite → exception » deux fois ; changer de
+politique ici introduirait une incohérence non justifiée par la spec.
+
+**Statut :** en attente de décision humaine.
+
+---
+
+## Q6 — Soigner un allié / soin refusé à un non-allié
+
+**Spec en cause :** *« Allies can Heal one another and non-allies cannot »*
+
+Deux points, dont un seul bloque réellement :
+
+1. **Signal de conception (résolu sans escalade)** : `heal(amount)`
+   n'existe aujourd'hui que pour se soigner soi-même. La spec introduit un
+   soin **ciblé** vers un autre personnage. Choix retenu : nouvelle
+   méthode `healAlly(target, amount)`, cohérente avec `dealDamage(target,
+   amount)` — `heal(amount)` (auto-soin, déjà testé) reste inchangée.
+2. **Ambiguïté réelle (bloquante)** : quel est l'effet observable quand la
+   cible n'est pas une alliée ? Même nature que Q1/Q2/Q5.
+
+**Cas d'entrée problématique :** `healer.healAlly(target, amount)` quand
+`!healer.isAllyOf(target)`.
+
+**Interprétations candidates :**
+
+| # | Comportement | Conséquences |
+|---|---|---|
+| A | No-op silencieux | Incohérent avec Q1/Q2/Q5 |
+| B | Lève une exception | Cohérent avec la politique déjà adoptée trois fois |
+| C | Retourne un statut | Change la signature de la nouvelle méthode dès sa création |
+
+**Recommandation :** B, même raisonnement que Q5.
+
+**Statut :** en attente de décision humaine — dépend de la réponse à Q5
+pour la cohérence de politique d'erreur dans tout le domaine.
+
+---
+
 ## Comportements implémentés
 
 - Health démarre à 1000.
@@ -136,3 +197,7 @@ Ex. `101 × 0.5 = 50.5 → 51` ; `101 × 1.5 = 151.5 → 152`.
   augmentés de 50% si la cible a un niveau ≤ attaquant-5.
 - Les dégâts modifiés par l'écart de niveau sont arrondis à l'entier le
   plus proche, arrondi arithmétique standard (Q4).
+- Un personnage démarre dans aucune faction.
+- `character.join(factionName)` / `character.leave(factionName)` — quitter
+  une faction jamais rejointe est un no-op.
+- `a.isAllyOf(b)` — vrai si `a` et `b` partagent au moins une faction.

@@ -19,6 +19,58 @@ describe("Character creation", () => {
 
     expect(character.level).toBe(1);
   });
+
+  it("starts in no faction", () => {
+    const character = new Character();
+
+    expect(character.factions).toEqual([]);
+  });
+});
+
+describe("Factions", () => {
+  it("joins a faction", () => {
+    const character = new Character();
+
+    character.join("orcs");
+
+    expect(character.factions).toEqual(["orcs"]);
+  });
+
+  it("leaves a faction", () => {
+    const character = new Character();
+    character.join("orcs");
+
+    character.leave("orcs");
+
+    expect(character.factions).toEqual([]);
+  });
+
+  it("does nothing when leaving a faction it never joined", () => {
+    const character = new Character();
+    character.join("orcs");
+
+    character.leave("elves");
+
+    expect(character.factions).toEqual(["orcs"]);
+  });
+
+  it("considers two characters in the same faction as allies", () => {
+    const a = new Character();
+    const b = new Character();
+    a.join("orcs");
+    b.join("orcs");
+
+    expect(a.isAllyOf(b)).toBe(true);
+  });
+
+  it("does not consider two characters in different factions as allies", () => {
+    const a = new Character();
+    const b = new Character();
+    a.join("orcs");
+    b.join("elves");
+
+    expect(a.isAllyOf(b)).toBe(false);
+  });
 });
 
 describe("Dealing damage", () => {
