@@ -47,6 +47,7 @@ export class Character {
   }
 
   dealDamage(target: Character, amount: number): void {
+    this.requirePositiveAmount(amount, "Damage amount must be positive");
     if (target === this) {
       throw new Error("A character cannot deal damage to itself");
     }
@@ -68,10 +69,17 @@ export class Character {
   }
 
   heal(amount: number): void {
+    this.requirePositiveAmount(amount, "Heal amount must be positive");
     if (!this.isAlive) {
       throw new Error("A dead character cannot heal");
     }
     this.currentHealth = Math.min(this.maxHealth, this.currentHealth + amount);
+  }
+
+  private requirePositiveAmount(amount: number, message: string): void {
+    if (amount <= 0) {
+      throw new Error(message);
+    }
   }
 
   healAlly(ally: Character, amount: number): void {

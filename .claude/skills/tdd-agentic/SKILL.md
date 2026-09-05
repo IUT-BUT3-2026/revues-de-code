@@ -50,6 +50,11 @@ escalade spécification.** On n'entre pas en phase THINK avec une spec floue.
 
 Traiter les comportements un par un, du plus simple au plus structurant.
 
+**Repérer au passage les comportements candidats au PBT** (voir « Property-
+based testing ») : une règle qui s'énonce comme un invariant sur une
+famille d'entrées (bornes, arrondi, symétrie, monotonie, structure de
+données) plutôt que comme un exemple isolé.
+
 ## Phase 1 — THINK : concevoir le test avant de l'écrire
 
 Réfléchir **avant** de coder, pour que le futur test soit rouge **pour les
@@ -105,6 +110,58 @@ bonnes raisons**. Passer chaque rubrique en revue et agir sur les signaux :
 4. Un test **vert du premier coup** est suspect : soit le comportement existe
    déjà (le vérifier, puis passer au comportement suivant), soit le test ne
    teste rien (le corriger).
+
+## Property-based testing (PBT) : compléter, pas remplacer
+
+Certains comportements ne s'énoncent pas naturellement comme un exemple
+(« pour l'entrée X, j'attends Y ») mais comme un **invariant valable sur
+toute une famille d'entrées** : arrondi, bornes (min/max), symétrie entre
+deux opérations inverses, monotonie, structure de données préservée. Le
+PBT (avec une bibliothèque de type `fast-check` en TS/JS) génère un grand
+nombre d'entrées et vérifie l'invariant sur chacune, avec réduction
+automatique (« shrinking ») du plus petit contre-exemple en cas d'échec.
+
+**Quand l'envisager** — pendant la phase 0/1, un signal fait candidat au
+PBT :
+- une règle numérique avec bornes, arrondi, ou facteur (plafond de santé,
+  modificateur de dégâts, calcul de remise…) ;
+- une paire d'opérations censées être inverses ou cohérentes entre elles
+  (soigner puis blesser, sérialiser puis désérialiser…) ;
+- un invariant qui doit tenir **quel que soit** l'ordre de grandeur de
+  l'entrée (montants négatifs, très grands, zéro) — les cas limites que
+  des exemples ponctuels oublient facilement.
+
+**Comment l'intégrer à la boucle** — le PBT ne remplace pas les phases,
+il les traverse différemment :
+- Le PBT **complète** les tests exemple, il ne les remplace pas : garder
+  1-2 exemples nommés pour documenter le cas nominal (lisibles, servent
+  de doc vivante), ajouter les property tests dans un fichier séparé
+  (`*.properties.test.ts`) pour ne pas alourdir la suite exemple.
+- **RED reste RED** : un property test doit d'abord échouer pour la bonne
+  raison avant d'écrire le code qui le satisfait — mêmes règles que la
+  phase 2. fast-check réduit alors le contre-exemple au cas le plus
+  simple qui viole la propriété : c'est ce cas qui pilote GREEN.
+- **⚠ Un property test qui passe dès le premier lancement sur du code
+  déjà existant n'est pas un cycle RED.** C'est une **caractérisation**
+  (le PBT valide un comportement déjà correct sur un grand espace
+  d'entrées, ce qui a sa valeur : garantie étendue, régression future) —
+  à signaler comme telle, jamais présentée comme un rouge qu'elle n'a pas
+  été. Ne pas simuler un rouge artificiel pour se conformer à la forme du
+  cycle.
+- **GREEN reste minimal** : le code doit satisfaire la propriété, pas
+  plus — pas de sur-généralisation au prétexte que « le PBT explore tout
+  l'espace ».
+- **REFACTOR s'applique pareil** aux property tests : dédupliquer les
+  générateurs (`fc.integer(...)`) communs à plusieurs propriétés, nommer
+  les plages avec les mêmes constantes que le code de production.
+
+**Ce que le PBT révèle souvent** — les montants/paramètres qui devraient
+être positifs mais dont aucune garde n'existe (0, négatif), les valeurs
+extrêmes qui contournent un plafond, les combinaisons de règles qui
+s'annulent ou se cumulent de façon inattendue. Un signal découvert ainsi
+suit la même table de routage que dans la phase 1 : bug de conception à
+corriger tout de suite s'il est clair, ou escalade si l'effet observable
+attendu n'est pas spécifié.
 
 ## Phase 3 — GREEN : le code minimal
 

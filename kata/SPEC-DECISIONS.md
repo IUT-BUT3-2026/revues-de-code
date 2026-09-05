@@ -15,6 +15,16 @@ l'arrondi des dégâts modifiés (Q4) sont implémentés.
 `join`/`leave`, `isAllyOf`, interdiction de dégâts entre alliés (Q5) et
 soin réservé aux alliés (Q6) sont implémentés.
 
+**Property-based testing (fast-check)** ajouté dans
+`kata/tests/character.properties.test.ts`, en complément des tests
+exemple. A découvert un bug réel non couvert par les tests exemple : ni
+`dealDamage` ni `heal` ne validaient que `amount` soit strictement
+positif — un montant nul ou négatif contournait les gardes métier
+existantes (`dealDamage(target, -1)` avec un modificateur d'augmentation
+soignait la cible au lieu de la blesser ; `heal(-50)` blessait au lieu de
+soigner). Corrigé par une garde `requirePositiveAmount` partagée (exception,
+cohérent avec Q1/Q2/Q5/Q6), cycle think-red-green-refactor complet.
+
 ---
 
 ## Q1 — Un personnage ne peut pas s'infliger de dégâts à lui-même
@@ -213,3 +223,5 @@ délègue à `ally.heal(amount)` (Tell Don't Ask) après une garde
   et `target` sont alliés (Q5).
 - `healer.healAlly(target, amount)` soigne `target` s'ils sont alliés,
   lève une exception sinon (Q6).
+- `dealDamage` et `heal` lèvent une exception pour un montant ≤ 0 (bug
+  trouvé par PBT, garde `requirePositiveAmount` partagée).
