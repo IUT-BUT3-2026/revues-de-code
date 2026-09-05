@@ -7,10 +7,9 @@ un point que la spec ne précise pas. Voir `.claude/skills/tdd-agentic`.
 **Q1, Q2 et Q3 sont désormais tranchées et implémentées** (voir statuts
 ci-dessous). Toute la story « Damage and Health » est couverte.
 
-**Story « Levels » en cours** — Level (départ 1), plafond de santé 1500 au
-niveau 6, modificateurs de dégâts ±50% selon l'écart de niveau sont
-implémentés. Une question latente (Q4, non encore bloquante) est notée
-ci-dessous.
+**Story « Levels » complète** — Level (départ 1), plafond de santé 1500 au
+niveau 6, modificateurs de dégâts ±50% selon l'écart de niveau, et
+l'arrondi des dégâts modifiés (Q4) sont implémentés.
 
 ---
 
@@ -111,11 +110,11 @@ modificateur actif, ex. `dealDamage(target, 101)` avec écart de niveau ≥ 5
 sans contrainte — le comportement actuel (pas d'arrondi) reste cohérent
 tant qu'aucun test n'exige un entier.
 
-**Statut :** non bloquante — aucun comportement de la spec ne force
-actuellement ce cas. **Si un futur cycle introduit un montant de dégâts
-non multiple de 2, remonter la question avant de choisir un arrondi**
-(`Math.round`, `Math.floor`, ou valeurs décimales assumées) : ne pas
-trancher silencieusement à ce moment-là.
+**Statut :** ✅ **tranché par l'humain (2026-09-05) : arrondi arithmétique
+standard** (`Math.round` — .5 arrondit vers le haut). Implémenté (cycle
+think-red-green-refactor complet) : `adjustDamageForLevelGap` applique
+`Math.round` sur les deux branches modifiées (réduction et augmentation).
+Ex. `101 × 0.5 = 50.5 → 51` ; `101 × 1.5 = 151.5 → 152`.
 
 ---
 
@@ -135,3 +134,5 @@ trancher silencieusement à ce moment-là.
 - Le plafond de santé passe à 1500 à partir du niveau 6 (en dessous : 1000).
 - Les dégâts sont réduits de 50% si la cible a un niveau ≥ attaquant+5, et
   augmentés de 50% si la cible a un niveau ≤ attaquant-5.
+- Les dégâts modifiés par l'écart de niveau sont arrondis à l'entier le
+  plus proche, arrondi arithmétique standard (Q4).

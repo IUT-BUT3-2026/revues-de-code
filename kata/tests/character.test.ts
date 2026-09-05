@@ -61,6 +61,26 @@ describe("Dealing damage", () => {
     expect(target.health).toBe(850);
   });
 
+  it("rounds reduced damage to the nearest integer", () => {
+    const attacker = new Character();
+    const target = new Character();
+    target.level = 6;
+
+    attacker.dealDamage(target, 101);
+
+    expect(target.health).toBe(949);
+  });
+
+  it("rounds increased damage to the nearest integer", () => {
+    const attacker = new Character();
+    attacker.level = 6;
+    const target = new Character();
+
+    attacker.dealDamage(target, 101);
+
+    expect(target.health).toBe(848);
+  });
+
   it("throws when a character deals damage to itself", () => {
     const character = new Character();
 

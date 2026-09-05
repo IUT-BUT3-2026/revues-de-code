@@ -31,10 +31,10 @@ export class Character {
   private adjustDamageForLevelGap(amount: number, target: Character): number {
     const levelGap = target.level - this.level;
     if (levelGap >= LEVEL_GAP_FOR_DAMAGE_MODIFIER) {
-      return amount * DAMAGE_REDUCTION_FACTOR;
+      return Math.round(amount * DAMAGE_REDUCTION_FACTOR);
     }
     if (levelGap <= -LEVEL_GAP_FOR_DAMAGE_MODIFIER) {
-      return amount * DAMAGE_INCREASE_FACTOR;
+      return Math.round(amount * DAMAGE_INCREASE_FACTOR);
     }
     return amount;
   }
