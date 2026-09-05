@@ -50,6 +50,9 @@ export class Character {
     if (target === this) {
       throw new Error("A character cannot deal damage to itself");
     }
+    if (this.isAllyOf(target)) {
+      throw new Error("A character cannot deal damage to an ally");
+    }
     target.receiveDamage(this.adjustDamageForLevelGap(amount, target));
   }
 
@@ -69,6 +72,13 @@ export class Character {
       throw new Error("A dead character cannot heal");
     }
     this.currentHealth = Math.min(this.maxHealth, this.currentHealth + amount);
+  }
+
+  healAlly(ally: Character, amount: number): void {
+    if (!this.isAllyOf(ally)) {
+      throw new Error("A character can only heal an ally");
+    }
+    ally.heal(amount);
   }
 
   private receiveDamage(amount: number): void {

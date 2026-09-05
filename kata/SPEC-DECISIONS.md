@@ -11,9 +11,9 @@ ci-dessous). Toute la story « Damage and Health » est couverte.
 niveau 6, modificateurs de dégâts ±50% selon l'écart de niveau, et
 l'arrondi des dégâts modifiés (Q4) sont implémentés.
 
-**Story « Factions » en cours** — appartenance (aucune au départ),
-`join`/`leave`, `isAllyOf` sont implémentés. **Q5 et Q6 bloquent** la
-suite (dégâts/soin entre alliés et non-alliés), voir ci-dessous.
+**Story « Factions » complète** — appartenance (aucune au départ),
+`join`/`leave`, `isAllyOf`, interdiction de dégâts entre alliés (Q5) et
+soin réservé aux alliés (Q6) sont implémentés.
 
 ---
 
@@ -143,7 +143,11 @@ Même blocage que Q1 : la spec dit *que* c'est interdit, pas ce qui est
 a déjà adopté « action interdite → exception » deux fois ; changer de
 politique ici introduirait une incohérence non justifiée par la spec.
 
-**Statut :** en attente de décision humaine.
+**Statut :** ✅ **tranché par l'humain (2026-09-05) : option B — exception**
+(cohérent avec Q1/Q2). Implémenté (cycle think-red-green-refactor
+complet) : `dealDamage` lève `Error("A character cannot deal damage to an
+ally")` quand `this.isAllyOf(target)`, vérifié en garde avant le calcul
+des dégâts.
 
 ---
 
@@ -174,8 +178,12 @@ Deux points, dont un seul bloque réellement :
 
 **Recommandation :** B, même raisonnement que Q5.
 
-**Statut :** en attente de décision humaine — dépend de la réponse à Q5
-pour la cohérence de politique d'erreur dans tout le domaine.
+**Statut :** ✅ **tranché par l'humain (2026-09-05) : option B — exception**
+(cohérent avec Q1/Q2/Q5). Implémenté (cycle think-red-green-refactor
+complet, en deux temps) : nouvelle méthode `healAlly(ally, amount)` qui
+délègue à `ally.heal(amount)` (Tell Don't Ask) après une garde
+`Error("A character can only heal an ally")` quand `!this.isAllyOf(ally)`.
+`heal(amount)` (auto-soin) reste inchangée.
 
 ---
 
@@ -201,3 +209,7 @@ pour la cohérence de politique d'erreur dans tout le domaine.
 - `character.join(factionName)` / `character.leave(factionName)` — quitter
   une faction jamais rejointe est un no-op.
 - `a.isAllyOf(b)` — vrai si `a` et `b` partagent au moins une faction.
+- `attacker.dealDamage(target, amount)` lève une exception si `attacker`
+  et `target` sont alliés (Q5).
+- `healer.healAlly(target, amount)` soigne `target` s'ils sont alliés,
+  lève une exception sinon (Q6).

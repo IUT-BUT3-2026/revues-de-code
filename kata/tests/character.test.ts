@@ -138,6 +138,15 @@ describe("Dealing damage", () => {
 
     expect(() => character.dealDamage(character, 100)).toThrow();
   });
+
+  it("throws when an ally deals damage to another ally", () => {
+    const attacker = new Character();
+    const target = new Character();
+    attacker.join("orcs");
+    target.join("orcs");
+
+    expect(() => attacker.dealDamage(target, 100)).toThrow();
+  });
 });
 
 describe("Healing", () => {
@@ -178,5 +187,25 @@ describe("Healing", () => {
     character.heal(600);
 
     expect(character.health).toBe(1500);
+  });
+
+  it("heals an ally", () => {
+    const healer = new Character();
+    const ally = new Character();
+    healer.join("orcs");
+    ally.join("orcs");
+    const attacker = new Character();
+    attacker.dealDamage(ally, 300);
+
+    healer.healAlly(ally, 100);
+
+    expect(ally.health).toBe(800);
+  });
+
+  it("throws when healing a non-ally", () => {
+    const healer = new Character();
+    const target = new Character();
+
+    expect(() => healer.healAlly(target, 100)).toThrow();
   });
 });
