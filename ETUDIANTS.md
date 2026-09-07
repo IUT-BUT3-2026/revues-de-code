@@ -22,13 +22,13 @@
 | Nom (état civil)               | Pseudo GitHub      | Rôle    |
 |--------------------------------|--------------------|---------|
 | Yoann LALEURE                  | Yoann31310         | porteur |
-| Adrien Caussinus-Verdugier     | arnoldafricans     | membre  |
-| Patrice Antoine                | patrice-an         | membre  |
+| Adrien Caussinus-Verdugier     | arnoldafricaus     | membre  |
+| Patrice Antoine                | Patrice-An         | membre  |
 
 ## 3. Rendu
 
 - **TD :** TD1
-- **Lien de la PR :** (à coller une fois la PR ouverte)
+- **Lien de la PR :** https://github.com/IUT-BUT3-2026/revues-de-code/pull/1
 
 ## 4. Note — réservée à l'enseignant
 
