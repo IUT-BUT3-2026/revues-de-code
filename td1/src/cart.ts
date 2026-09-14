@@ -30,11 +30,25 @@ export function formatPrice(value: number): string {
 
 // Encaisse le panier : affiche le total et prépare le paiement
 export function checkout(cart: Item[]) {
-  if (cart.length === 0) {
-    console.log("Panier vide");
-    return;
+  //if (cart.length === 0) {
+  // Prévient dans le cas où cart est null ou undefined
+  if (!Array.isArray(cart) || cart.length === 0) {
+    //console.log("Panier vide");
+    // Retourne un objet plutôt qu'un message sur la console
+    return {
+      ok: false,
+      message : "Panier vide"
+    };
   }
   const t = total(cart);
-  console.log("Total à payer : " + formatPrice(t));
+  // console.log("Total à payer : " + formatPrice(t));
   // TODO: intégrer le paiement
+  // Retourne un objet plutôt qu'un message sur la console
+  return {
+    ok: true,
+    t,
+    message: "Total à payer : ${formatPrice(t)}
+  };
 }
+
+
