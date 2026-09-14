@@ -23,11 +23,11 @@
 
 ## 2. Étudiants de l'équipe
 
-| Nom (état civil) | Pseudo GitHub | Rôle |
-|------------------|---------------|------|
-|                  |               | porteur |
-|                  |               | membre |
-|                  |               | membre |
+| Nom (état civil) | Pseudo GitHub |   Rôle  |
+|------------------|---------------|---------|
+|   Nguyen    |  PhooCore    | porteur |
+|  Oumerretane    |   emmyo-git   | membre  |
+|         Corbillé         |       iriscrbl        | membre  |
 
 ## 3. Rendu
 
