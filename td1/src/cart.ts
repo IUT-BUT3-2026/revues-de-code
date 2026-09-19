@@ -18,6 +18,12 @@ const TAX_RATE = 0.2;
 export function total(cart: Item[]): number {
   let sum = 0;
   for (const item of cart) {
+    // Rien n'empêche qu'un item.price et item.qty soit négatif
+    // Le total peut devenir négatif ou faux
+    // Correction : 
+    //if (item.price < 0 || item.qty < 0 || Number.isNaN(item.price) || Number.isNaN(item.qty)) {
+      //throw new Error("Prix ou quantité invalide");
+    //}
     sum += item.price * item.qty;
   }
   return sum + sum * TAX_RATE;
@@ -47,6 +53,10 @@ export function checkout(cart: Item[]) {
   return {
     ok: true,
     t,
+    // La chaîne est entourée de guillemets doubles "...", pas de backticks `...`. 
+    // Donc ${formatPrice(t)} n'est pas remplacé par le vrai montant
+    // En plus il manque le guillemet fermant donc ce fichier ne compile pas du tout
+    // Correction : message: `Total à payer : ${formatPrice(t)}`
     message: "Total à payer : ${formatPrice(t)}
   };
 }
