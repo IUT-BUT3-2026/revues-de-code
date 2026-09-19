@@ -18,23 +18,51 @@ const TAX_RATE = 0.2;
 export function total(cart: Item[]): number {
   let sum = 0;
   for (const item of cart) {
+    // Rien n'empêche qu'un item.price et item.qty soit négatif
+    // Le total peut devenir négatif ou faux
+    // Correction : 
+    //if (item.price < 0 || item.qty < 0 || Number.isNaN(item.price) || Number.isNaN(item.qty)) {
+      //throw new Error("Prix ou quantité invalide");
+    //}
     sum += item.price * item.qty;
   }
   return sum + sum * TAX_RATE;
 }
 
 // Formate un prix en euros
+// formatPrice ne gère pas les cas invalides
+// Correction :
+// export function formatPrice(value: number): string {   
+//  if (!Number.isFinite(value)) {
+//     return "—";
+//  } 
+//  return value.toFixed(2) + " €";
+//  } 
 export function formatPrice(value: number): string {
   return value.toFixed(2) + " €";
 }
 
 // Encaisse le panier : affiche le total et prépare le paiement
 export function checkout(cart: Item[]) {
-  if (cart.length === 0) {
-    console.log("Panier vide");
-    return;
+  //if (cart.length === 0) {
+  // Prévient dans le cas où cart est null ou undefined
+  if (!Array.isArray(cart) || cart.length === 0) {
+    //console.log("Panier vide");
+    // Retourne un objet plutôt qu'un message sur la console
+    return {
+      ok: false,
+      message : "Panier vide"
+    };
   }
   const t = total(cart);
-  console.log("Total à payer : " + formatPrice(t));
+  // console.log("Total à payer : " + formatPrice(t));
   // TODO: intégrer le paiement
+  // Retourne un objet plutôt qu'un message sur la console
+  return {
+    ok: true,
+    t,
+    message: `Total à payer : ${formatPrice(t)}`
+  };
 }
+
+
