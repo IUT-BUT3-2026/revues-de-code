@@ -30,6 +30,14 @@ export function total(cart: Item[]): number {
 }
 
 // Formate un prix en euros
+// formatPrice ne gère pas les cas invalides
+// Correction :
+// export function formatPrice(value: number): string {   
+//  if (!Number.isFinite(value)) {
+//     return "—";
+//  } 
+//  return value.toFixed(2) + " €";
+//  } 
 export function formatPrice(value: number): string {
   return value.toFixed(2) + " €";
 }
@@ -53,11 +61,7 @@ export function checkout(cart: Item[]) {
   return {
     ok: true,
     t,
-    // La chaîne est entourée de guillemets doubles "...", pas de backticks `...`. 
-    // Donc ${formatPrice(t)} n'est pas remplacé par le vrai montant
-    // En plus il manque le guillemet fermant donc ce fichier ne compile pas du tout
-    // Correction : message: `Total à payer : ${formatPrice(t)}`
-    message: "Total à payer : ${formatPrice(t)}
+    message: `Total à payer : ${formatPrice(t)}`
   };
 }
 
