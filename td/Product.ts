@@ -139,22 +139,15 @@ export class Product {
     this.updatedAt = new Date();
   }
 
-  getDisplayLabel(): string {
-    let label: string;
+    getDisplayLabel(): string {
+    // Les deux branches précédentes (active / autre) étaient identiques
     if (this.stat === "deprecated") {
-      label = `[DISCONTINUED] ${this.nm}`;
-    } else {
-      if (this.stk === 0) {
-        label = `[OUT OF STOCK] ${this.nm}`;
-      } else {
-        if (this.stat === "active") {
-          label = this.nm;
-        } else {
-          label = this.nm;
-        }
-      }
+      return `[DISCONTINUED] ${this.nm}`;
     }
-    return label;
+    if (this.stk === 0) {
+      return `[OUT OF STOCK] ${this.nm}`;
+    }
+    return this.nm;
   }
 
   // --- Catalog / images / discounts ---
@@ -237,7 +230,9 @@ export class Product {
                 this.dscs.push(dscCode);
                 this.setValidUntil(validUntil);
                 this.updatedAt = new Date();
-                prisma.product.update({
+                // "await" manquant : la promesse n'etait ni attendue ni catchee,
+                // risque de UnhandledPromiseRejection et de resolution avant persistance.
+                await prisma.product.update({
                   where: { id: this.id },
                   data: { discounts: this.dscs, updatedAt: this.updatedAt },
                 });
@@ -251,7 +246,7 @@ export class Product {
 
   // --- Suppliers ---
 
-  async addSupplierToRegion(rgn: string, splrs: Supplier[]): Promise<void> {
+    async addSupplierToRegion(rgn: string, splrs: Supplier[]): Promise<void> {
     const s = splrs.find((x) => x.rgn === rgn);
     if (!s) throw new Error(`No supplier found for region ${rgn}`);
 
@@ -262,6 +257,12 @@ export class Product {
       where: { productId_region: { productId: this.id, region: rgn } },
       create: { productId: this.id, region: rgn, supplierId: s.id },
       update: { supplierId: s.id },
+    });
+
+    // updatedAt était modifié en mémoire mais jamais persisté sur Product : corrigé.
+    await prisma.product.update({
+      where: { id: this.id },
+      data: { updatedAt: this.updatedAt },
     });
   }
 
@@ -284,11 +285,15 @@ export class Product {
 
   // --- Stock ---
 
-  async receiveStock(qty: number): Promise<void> {
+    async receiveStock(qty: number): Promise<void> {
+    //null possible,on lève désormais une erreur explicite.
+    if (!this.wh) {
+      throw new Error(`Cannot receive stock for ${this.nm}: no warehouse assigned`);
+    }
     this.stk += qty;
     this.qty += qty;
     this.updatedAt = new Date();
-    console.log(`Restocking ${this.nm} at ${this.wh!.nm}`);
+    console.log(`Restocking ${this.nm} at ${this.wh.nm}`);
     await prisma.product.update({
       where: { id: this.id },
       data: { stock: this.stk, quantity: this.qty, updatedAt: this.updatedAt },
@@ -335,7 +340,9 @@ export class Product {
     }
 
     // Notify customers
-    this.notifs.push(this.mkNotif("customers@omniproduct.com", `Product no longer available: ${this.nm}`, `${this.nm} is no longer available.`));
+        // Adresse sortie en variable d'environnement plutôt que codée en dur.
+    const customerNotificationEmail = process.env.CUSTOMER_NOTIFICATION_EMAIL ?? "customers@omniproduct.com";
+    this.notifs.push(this.mkNotif(customerNotificationEmail, `Product no longer available: ${this.nm}`, `${this.nm} is no longer available.`));
   }
 
   // small helper to cut down repetition in notif building
