@@ -159,7 +159,7 @@ export class Product {
 
   // --- Catalog / images / discounts ---
 
-  async addImage(ctx: string, url: string, overwrite: boolean = true): Promise<void> {
+  async addImage(ctx: string, url: string): Promise<void> {
     if (url) {
       if (url.substring(0, 4) === "http") {
         if (!(this.images[ctx] === undefined)) {
@@ -304,10 +304,9 @@ export class Product {
     });
 
     // Notify all regional suppliers
-    for (const [rgn, s] of this.suppliersRegions) {
-      this.notifications.push(this.mkNotif(s.email, `Product sold: ${this.name}`, `${qty} unit(s) of ${this.name} were sold. Remaining stock: ${this.stock}.`));
-    }
+    this.notifySuppliers(`Product sold: ${this.name}`, `${qty} unit(s) of ${this.name} were sold. Remaining stock: ${this.stock}.`);
   }
+  
 
   // --- Lifecycle ---
 
@@ -322,12 +321,16 @@ export class Product {
     });
 
     // Notify all regional suppliers
-    for (const [, s] of this.suppliersRegions) {
-      this.notifications.push(this.mkNotif(s.email, `Product deprecated: ${this.name}`, `The product ${this.name} has been deprecated and removed from the catalog.`));
-    }
+    this.notifySuppliers(`Product deprecated: ${this.name}`, `The product ${this.name} has been deprecated and removed from the catalog.`);
 
     // Notify customers
     this.notifications.push(this.mkNotif("customers@omniproduct.com", `Product no longer available: ${this.name}`, `${this.name} is no longer available.`));
+  }
+
+  private notifySuppliers(subject: string, body: string): void {
+    for (const supplier of this.suppliersRegions.values()) {
+      this.notifications.push(this.mkNotif(supplier.email, subject, body));
+    }
   }
 
   // small helper to cut down repetition in notif building
