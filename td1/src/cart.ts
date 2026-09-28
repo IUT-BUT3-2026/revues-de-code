@@ -18,9 +18,16 @@ const TAX_RATE = 0.2;
 export function total(cart: Item[]): number {
   let sum = 0;
   for (const item of cart) {
+	if(!Number.isFinite(item.price) || item.price < 0) {
+		throw new Error("Prix invalide");
+	}
+	if(!Number.isFinite(item.qty) || item.qty <= 0) {
+		throw new Error("Quantité invalide");
+	}
     sum += item.price * item.qty;
   }
-  return sum + sum * TAX_RATE;
+  const total = sum + sum * TAX_RATE
+  return Number(total.toFixed(2));
 }
 
 // Formate un prix en euros
@@ -29,7 +36,7 @@ export function formatPrice(value: number): string {
 }
 
 // Encaisse le panier : affiche le total et prépare le paiement
-export function checkout(cart: Item[]) {
+export function checkout(cart: Item[]): void {
   if (cart.length === 0) {
     console.log("Panier vide");
     return;
