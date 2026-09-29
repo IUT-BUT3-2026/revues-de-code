@@ -25,9 +25,9 @@
 
 | Nom (état civil) | Pseudo GitHub | Rôle |
 |------------------|---------------|------|
-|                  |               | porteur |
-|                  |               | membre |
-|                  |               | membre |
+|      NGUYEN            |     Tuyet          | porteur |
+|       CORBILLÉ           |      Iris         | membre |
+|       OUMERRETANE           |     Emmy          | membre |
 
 ## 3. Rendu
 
