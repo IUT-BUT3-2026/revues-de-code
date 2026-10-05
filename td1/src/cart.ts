@@ -17,7 +17,10 @@ const TAX_RATE = 0.2;
 // Calcule le total TTC du panier
 export function total(cart: Item[]): number {
   let sum = 0;
-  for (const item of cart) {
+    for (const item of cart) {
+    if (item.price < 0 || item.qty <= 0) {
+      throw new Error("Article invalide : " + item.name);
+    }
     sum += item.price * item.qty;
   }
   return sum + sum * TAX_RATE;
