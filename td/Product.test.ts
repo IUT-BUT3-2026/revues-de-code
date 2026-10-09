@@ -26,7 +26,19 @@ vi.mock("@prisma/client", () => ({
   Prisma: {},
 }));
 
-import { Product, Price, Supplier, Warehouse } from "./Product";
+import {
+  Product,
+  Price,
+  Supplier,
+  Warehouse,
+  InsufficientStockError,
+  InvalidDiscountError,
+  SupplierNotFoundError,
+  InvalidImageError,
+  InvalidSupplierError,
+  DEFAULT_MARGIN_PERCENT,
+  DEFAULT_VAT_PERCENT,
+} from "./Product";
 
 function hasProp(obj: unknown, propName: string): boolean {
   return typeof obj === "object" && obj !== null && propName in (obj as object);
@@ -43,10 +55,10 @@ describe("Price", () => {
     expect(price.currency).toBe("EUR");
 
     expect(hasProp(price, "margin"), "Price should have a property named `margin` (not an abbreviation)").toBe(true);
-    expect(price.margin).toBe(15);
+    expect(price.margin).toBe(DEFAULT_MARGIN_PERCENT);
 
     expect(hasProp(price, "vat"), "Price should have a property named `vat`").toBe(true);
-    expect(price.vat).toBe(20);
+    expect(price.vat).toBe(DEFAULT_VAT_PERCENT);
   });
 });
 
@@ -195,7 +207,7 @@ function makeTypedProduct() {
 describe("Price.getResellerPrice()", () => {
   it("adds margin then VAT on top of the margin only", () => {
     const price = new Price(100, "EUR");
-    price.mgn = 10;
+    price.margin = 10;
     price.vat = 20;
 
     // margin = 10, vat on margin = 2 -> 100 + 10 + 2
@@ -206,7 +218,7 @@ describe("Price.getResellerPrice()", () => {
 describe("Product.getResellerPrice()", () => {
   it("matches the same margin/VAT formula as Price", () => {
     const product = makeTypedProduct();
-    product.price.mgn = 10;
+    product.price.margin = 10;
     product.price.vat = 20;
 
     expect(product.getResellerPrice()).toBe(product.price.getResellerPrice());
@@ -216,14 +228,14 @@ describe("Product.getResellerPrice()", () => {
 describe("getDisplayLabel()", () => {
   it("prefixes discontinued products", () => {
     const product = makeTypedProduct();
-    product.stat = "deprecated";
+    product.status = "deprecated";
 
     expect(product.getDisplayLabel()).toBe("[DISCONTINUED] Wireless Mouse");
   });
 
   it("prefixes out-of-stock products", () => {
     const product = makeTypedProduct();
-    product.stk = 0;
+    product.stock = 0;
 
     expect(product.getDisplayLabel()).toBe("[OUT OF STOCK] Wireless Mouse");
   });
@@ -238,12 +250,12 @@ describe("getDisplayLabel()", () => {
 describe("receiveStock()", () => {
   it("increases both stock and quantity by the received amount", async () => {
     const product = makeTypedProduct();
-    product.wh = new Warehouse("w1", "Main Depot", "1 Dock Rd", "EU");
+    product.warehouse = new Warehouse("w1", "Main Depot", "1 Dock Rd", "EU");
 
     await product.receiveStock(20);
 
-    expect(product.stk).toBe(120);
-    expect(product.qty).toBe(120);
+    expect(product.stock).toBe(120);
+    expect(product.quantity).toBe(120);
   });
 });
 
@@ -253,7 +265,7 @@ describe("sell()", () => {
 
     await product.sell(30);
 
-    expect(product.stk).toBe(70);
+    expect(product.stock).toBe(70);
   });
 
   it("flips status to out_of_stock when the last unit is sold", async () => {
@@ -261,25 +273,25 @@ describe("sell()", () => {
 
     await product.sell(100);
 
-    expect(product.stk).toBe(0);
-    expect(product.stat).toBe("out_of_stock");
+    expect(product.stock).toBe(0);
+    expect(product.status).toBe("out_of_stock");
   });
 
   it("throws when selling more than the available stock", async () => {
     const product = makeTypedProduct();
 
     await expect(product.sell(101)).rejects.toThrow("Not enough stock");
-    expect(product.stk).toBe(100);
+    expect(product.stock).toBe(100);
   });
 
   it("pushes one notification per regional supplier", async () => {
     const product = makeTypedProduct();
-    product.splrRgns.set("EU", new Supplier("s1", "Acme Corp", "acme@example.com", "EU"));
-    product.splrRgns.set("US", new Supplier("s2", "Widget Inc", "widget@example.com", "US"));
+    product.suppliersRegions.set("EU", new Supplier("s1", "Acme Corp", "acme@example.com", "EU"));
+    product.suppliersRegions.set("US", new Supplier("s2", "Widget Inc", "widget@example.com", "US"));
 
     await product.sell(1);
 
-    expect(product.notifs.length).toBe(2);
+    expect(product.notifications.length).toBe(2);
   });
 });
 
@@ -289,18 +301,18 @@ describe("deprecate()", () => {
 
     await product.deprecate();
 
-    expect(product.stat).toBe("deprecated");
-    expect(product.stk).toBe(0);
+    expect(product.status).toBe("deprecated");
+    expect(product.stock).toBe(0);
   });
 
   it("notifies every regional supplier plus a customer-facing notification", async () => {
     const product = makeTypedProduct();
-    product.splrRgns.set("EU", new Supplier("s1", "Acme Corp", "acme@example.com", "EU"));
+    product.suppliersRegions.set("EU", new Supplier("s1", "Acme Corp", "acme@example.com", "EU"));
 
     await product.deprecate();
 
     // 1 supplier notification + 1 customer notification
-    expect(product.notifs.length).toBe(2);
+    expect(product.notifications.length).toBe(2);
   });
 });
 
@@ -311,7 +323,7 @@ describe("addDiscount()", () => {
 
     await product.addDiscount("SUMMER20", validUntil);
 
-    expect(product.dscs).toEqual(["WELCOME10", "SUMMER20"]);
+    expect(product.discounts).toEqual(["WELCOME10", "SUMMER20"]);
   });
 
   it("throws when adding a 3rd discount", async () => {
@@ -322,7 +334,7 @@ describe("addDiscount()", () => {
     await expect(product.addDiscount("FALL30", validUntil)).rejects.toThrow(
       "Cannot have more than 2 discounts at the same time",
     );
-    expect(product.dscs).toEqual(["WELCOME10", "SUMMER20"]);
+    expect(product.discounts).toEqual(["WELCOME10", "SUMMER20"]);
   });
 
   it("throws when validUntil is in the past", async () => {
@@ -350,7 +362,7 @@ describe("addDiscount()", () => {
 
     await product.addDiscount("SUMMER20", barelyFuture);
 
-    expect(product.getValidUntil()).toBe(barelyFuture);
+    expect(product.validUntil).toBe(barelyFuture);
   });
 });
 
@@ -360,7 +372,7 @@ describe("addImage()", () => {
 
     await product.addImage("hero", "http://img/hero.png");
 
-    expect(product.imgs.hero).toBe("http://img/hero.png");
+    expect(product.images.hero).toBe("http://img/hero.png");
   });
 
   it("rejects a url that doesn't start with http", async () => {
@@ -373,74 +385,74 @@ describe("addImage()", () => {
 
   it("appends the supplier name to the context key when overwriting an existing image", async () => {
     const product = makeTypedProduct();
-    product.splrRgns.set("EU", new Supplier("s1", "Acme Corp", "acme@example.com", "EU"));
+    product.suppliersRegions.set("EU", new Supplier("s1", "Acme Corp", "acme@example.com", "EU"));
     await product.addImage("hero", "http://img/hero-v1.png");
 
     await product.addImage("hero", "http://img/hero-v2.png");
 
-    expect(product.imgs["hero-Acme Corp"]).toBe("http://img/hero-v2.png");
-    expect(product.imgs["hero"]).toBe("http://img/hero-v1.png");
+    expect(product.images["hero-Acme Corp"]).toBe("http://img/hero-v2.png");
+    expect(product.images["hero"]).toBe("http://img/hero-v1.png");
   });
 
   it("falls back to a generic '-supplier' suffix when the supplier has no email", async () => {
     const product = makeTypedProduct();
-    product.splrRgns.set("EU", new Supplier("s1", "Acme Corp", "", "EU"));
+    product.suppliersRegions.set("EU", new Supplier("s1", "Acme Corp", "", "EU"));
     await product.addImage("hero", "http://img/hero-v1.png");
 
     await product.addImage("hero", "http://img/hero-v2.png");
 
-    expect(product.imgs["hero-supplier"]).toBe("http://img/hero-v2.png");
+    expect(product.images["hero-supplier"]).toBe("http://img/hero-v2.png");
   });
 
   it("falls back to the warehouse name when the supplier has an empty region and a warehouse is set", async () => {
     const product = makeTypedProduct();
-    product.wh = new Warehouse("w1", "Main Depot", "1 Dock Rd", "EU");
-    product.splrRgns.set("EU", new Supplier("s1", "Acme Corp", "acme@example.com", ""));
+    product.warehouse = new Warehouse("w1", "Main Depot", "1 Dock Rd", "EU");
+    product.suppliersRegions.set("EU", new Supplier("s1", "Acme Corp", "acme@example.com", ""));
     await product.addImage("hero", "http://img/hero-v1.png");
 
     await product.addImage("hero", "http://img/hero-v2.png");
 
-    expect(product.imgs["hero-Main Depot"]).toBe("http://img/hero-v2.png");
+    expect(product.images["hero-Main Depot"]).toBe("http://img/hero-v2.png");
   });
 
   it("falls back to the plain context key when the supplier has an empty region and no warehouse is set", async () => {
     const product = makeTypedProduct();
-    product.splrRgns.set("EU", new Supplier("s1", "Acme Corp", "acme@example.com", ""));
+    product.suppliersRegions.set("EU", new Supplier("s1", "Acme Corp", "acme@example.com", ""));
     await product.addImage("hero", "http://img/hero-v1.png");
 
     await product.addImage("hero", "http://img/hero-v2.png");
 
-    expect(product.imgs["hero"]).toBe("http://img/hero-v2.png");
+    expect(product.images["hero"]).toBe("http://img/hero-v2.png");
   });
 
   it("falls back to the plain context key when the supplier has no region at all", async () => {
     const product = makeTypedProduct();
     // Supplier with falsy region (empty string or would be undefined if constructor allowed it)
-    product.splrRgns.set("key1", new Supplier("s1", "NoRegion Corp", "noregion@example.com", ""));
+    product.suppliersRegions.set("key1", new Supplier("s1", "NoRegion Corp", "noregion@example.com", ""));
     await product.addImage("hero", "http://img/hero-v1.png");
 
     await product.addImage("hero", "http://img/hero-v2.png");
 
     // No warehouse set, so falls back to plain context key
-    expect(product.imgs["hero"]).toBe("http://img/hero-v2.png");
+    expect(product.images["hero"]).toBe("http://img/hero-v2.png");
   });
 
   it("falls back to warehouse name when supplier has no region and warehouse is set", async () => {
     const product = makeTypedProduct();
-    product.wh = new Warehouse("w1", "Central Hub", "1 Hub St", "UK");
+    product.warehouse = new Warehouse("w1", "Central Hub", "1 Hub St", "UK");
     // Supplier with no/empty region
-    product.splrRgns.set("key1", new Supplier("s1", "NoRegion Corp", "noregion@example.com", ""));
+    product.suppliersRegions.set("key1", new Supplier("s1", "NoRegion Corp", "noregion@example.com", ""));
     await product.addImage("hero", "http://img/hero-v1.png");
 
     await product.addImage("hero", "http://img/hero-v2.png");
 
     // With warehouse set, should append warehouse name instead of plain context
-    expect(product.imgs["hero-Central Hub"]).toBe("http://img/hero-v2.png");
+    expect(product.images["hero-Central Hub"]).toBe("http://img/hero-v2.png");
   });
 
   it("throws when a regional supplier has a malformed email", async () => {
     const product = makeTypedProduct();
-    product.splrRgns.set("EU", new Supplier("s1", "Acme Corp", "not-an-email", "EU"));
+    product.suppliersRegions.set("EU", new Supplier("s1", "Acme Corp", "not-an-email", "EU"));
     await product.addImage("hero", "http://img/hero-v1.png");
 
     await expect(product.addImage("hero", "http://img/hero-v2.png")).rejects.toThrow(
@@ -456,7 +468,7 @@ describe("addSupplierToRegion()", () => {
 
     await product.addSupplierToRegion("EU", [supplier]);
 
-    expect(product.splrRgns.get("EU")).toBe(supplier);
+    expect(product.suppliersRegions.get("EU")).toBe(supplier);
   });
 
   it("throws when no supplier matches the region", async () => {
@@ -466,5 +478,48 @@ describe("addSupplierToRegion()", () => {
     await expect(product.addSupplierToRegion("APAC", [supplier])).rejects.toThrow(
       "No supplier found for region APAC",
     );
+  });
+});
+
+describe("business errors are typed", () => {
+  it("sell() throws InsufficientStockError", async () => {
+    await expect(makeTypedProduct().sell(101)).rejects.toBeInstanceOf(InsufficientStockError);
+  });
+
+  it("addDiscount() throws InvalidDiscountError for a past date, a missing code and a 3rd discount", async () => {
+    const future = new Date(Date.now() + 1000 * 60 * 60 * 24);
+
+    await expect(makeTypedProduct().addDiscount("X", new Date(Date.now() - 1000))).rejects.toBeInstanceOf(InvalidDiscountError);
+    await expect(makeTypedProduct().addDiscount("", future)).rejects.toBeInstanceOf(InvalidDiscountError);
+
+    const product = makeTypedProduct();
+    await product.addDiscount("SUMMER20", future);
+    await expect(product.addDiscount("FALL30", future)).rejects.toBeInstanceOf(InvalidDiscountError);
+  });
+
+  it("addSupplierToRegion() throws SupplierNotFoundError", async () => {
+    await expect(makeTypedProduct().addSupplierToRegion("APAC", [])).rejects.toBeInstanceOf(SupplierNotFoundError);
+  });
+
+  it("addImage() throws InvalidImageError for a bad url", async () => {
+    await expect(makeTypedProduct().addImage("hero", "ftp://x")).rejects.toBeInstanceOf(InvalidImageError);
+    await expect(makeTypedProduct().addImage("hero", "")).rejects.toBeInstanceOf(InvalidImageError);
+  });
+
+  it("addImage() throws InvalidSupplierError for a malformed supplier email", async () => {
+    const product = makeTypedProduct();
+    product.suppliersRegions.set("EU", new Supplier("s1", "Acme Corp", "not-an-email", "EU"));
+
+    await expect(product.addImage("thumbnail", "http://img/x.png")).rejects.toBeInstanceOf(InvalidSupplierError);
+  });
+});
+
+describe("setMargin()", () => {
+  it("updates the price margin", async () => {
+    const product = makeTypedProduct();
+
+    await product.setMargin(20);
+
+    expect(product.price.margin).toBe(20);
   });
 });
