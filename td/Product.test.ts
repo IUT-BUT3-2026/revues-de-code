@@ -34,19 +34,19 @@ function hasProp(obj: unknown, propName: string): boolean {
 
 describe("Price", () => {
   it("exposes proper names: amount, currency, margin, vat", () => {
-    const price: any = new Price(100, "EUR");
+    const price: Price = new Price(100, "EUR");
 
     expect(hasProp(price, "amount"), "Price should have a property named `amount` (not an abbreviation)").toBe(true);
-    expect(price.amount).toBe(100);
+    expect(price.getAmount()).toBe(100);
 
     expect(hasProp(price, "currency"), "Price should have a property named `currency` (not an abbreviation)").toBe(true);
-    expect(price.currency).toBe("EUR");
+    expect(price.getCurrency()).toBe("EUR");
 
     expect(hasProp(price, "margin"), "Price should have a property named `margin` (not an abbreviation)").toBe(true);
-    expect(price.margin).toBe(15);
+    expect(price.getMargin()).toBe(15);
 
     expect(hasProp(price, "vat"), "Price should have a property named `vat`").toBe(true);
-    expect(price.vat).toBe(20);
+    expect(price.getVat()).toBe(20);
 
     expect(DEFAULT_MARGIN_PERCENTAGE).toBe(15);
     expect(DEFAULT_VAT_PERCENTAGE).toBe(20);
@@ -208,8 +208,8 @@ function makeTypedProduct() {
 describe("Price.getResellerPrice()", () => {
   it("adds margin then VAT on top of the margin only", () => {
     const price = new Price(100, "EUR");
-    price.margin = 10;
-    price.vat = 20;
+    price.setMargin(10);
+    price.setVat(20);
 
     // margin = 10, vat on margin = 2 -> 100 + 10 + 2
     expect(price.getResellerPrice()).toBe(112);
@@ -219,8 +219,8 @@ describe("Price.getResellerPrice()", () => {
 describe("Product.getResellerPrice()", () => {
   it("matches the same margin/VAT formula as Price", () => {
     const product = makeTypedProduct();
-    product.price.margin = 10;
-    product.price.vat = 20;
+    product.price.setMargin(10);
+    product.price.setVat(20);
 
     expect(product.getResellerPrice()).toBe(product.price.getResellerPrice());
   });

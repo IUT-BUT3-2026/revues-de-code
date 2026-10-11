@@ -61,10 +61,10 @@ export const DEFAULT_MARGIN_PERCENTAGE: number = 15;
 export const DEFAULT_VAT_PERCENTAGE: number = 20;
 
 export class Price {
-  amount: number;
-  currency: string;
-  margin: number; // percentage
-  vat: number; // percentage, applied on margin only
+  private amount: number;
+  private currency: string;
+  private margin: number; // percentage
+  private vat: number; // percentage, applied on margin only
 
   constructor(amount: number, currency: string) {
     this.amount = amount;
@@ -83,24 +83,30 @@ export class Price {
     return this.amount;
   }
 
-  setAmount(amount: number): void {
-    this.amount = amount;
-  }
-
   getCurrency(): string {
     return this.currency;
-  }
-
-  setCurrency(currency: string): void {
-    this.currency = currency;
   }
 
   getMargin(): number {
     return this.margin;
   }
 
+  getVat(): number {
+    return this.vat;
+  }
+
   setMargin(margin: number): void {
+    if (!Number.isFinite(margin)) {
+      throw new Error("Margin must be a finite number");
+    }
     this.margin = margin;
+  }
+
+  setVat(vat: number): void {
+    if (!Number.isFinite(vat)) {
+      throw new Error("Vat must be a finite number");
+    }
+    this.vat = vat;
   }
 }
 
@@ -305,6 +311,10 @@ export class Product {
   }
 
   async setMargin(marginPercentage: number): Promise<void> {
+    if (!Number.isFinite(marginPercentage)) {
+      throw new Error("Margin must be a finite number");
+    }
+
     const updatedAt = new Date();
 
     await prisma.product.update({
@@ -312,7 +322,7 @@ export class Product {
       data: { priceMargin: marginPercentage, updatedAt },
     });
 
-    this.price.margin = marginPercentage;
+    this.price.setMargin(marginPercentage);
     this.updatedAt = updatedAt;
   }
 
