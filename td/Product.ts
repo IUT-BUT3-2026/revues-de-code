@@ -12,197 +12,243 @@ import { PrismaClient, Prisma } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export type Chnl = "email" | "sms" | "push";
-export type PrdStat = "active" | "out_of_stock" | "deprecated";
+export type Channel = "email" | "sms" | "push";
+export type Status = "active" | "out_of_stock" | "deprecated";
+
+export class ValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ValidationError";
+  }
+}
+
+export class DomainRuleError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "DomainRuleError";
+  }
+}
 
 export interface Notification {
   id: string;
-  recip: string;
-  subj: string;
-  bod: string;
-  chnl: Chnl;
+  recipient: string;
+  subject: string;
+  body: string;
+  channel: Channel;
   sentAt: Date;
-  prdId?: string;
+  productId?: string;
 }
 
 export class Supplier {
   constructor(
     public id: string,
-    public nm: string,
-    public eml: string,
-    public rgn: string,
-  ) {}
+    public name: string,
+    public email: string,
+    public region: string,
+  ) { }
 }
 
 export class Warehouse {
   constructor(
     public id: string,
-    public nm: string,
-    public addr: string,
-    public rgn: string,
-  ) {}
+    public name: string,
+    public address: string,
+    public region: string,
+  ) { }
 }
 
-export class Price {
-  amt: number;
-  ccy: string;
-  mgn: number; // percentage
-  vat: number; // percentage, applied on margin only
+export const DEFAULT_MARGIN_PERCENTAGE: number = 15;
+export const DEFAULT_VAT_PERCENTAGE: number = 20;
 
-  constructor(amt: number, ccy: string) {
-    this.amt = amt;
-    this.ccy = ccy;
-    this.mgn = 15;
-    this.vat = 20;
+export class Price {
+  private amount: number;
+  private currency: string;
+  private margin: number; // percentage
+  private vat: number; // percentage, applied on margin only
+
+  constructor(amount: number, currency: string) {
+    this.amount = amount;
+    this.currency = currency;
+    this.margin = DEFAULT_MARGIN_PERCENTAGE;
+    this.vat = DEFAULT_VAT_PERCENTAGE;
   }
 
   getResellerPrice(): number {
-    const mgnAmt = (this.amt * this.mgn) / 100;
-    const vatAmt = (mgnAmt * this.vat) / 100;
-    return this.amt + mgnAmt + vatAmt;
+    const marginAmount = (this.amount * this.margin) / 100;
+    const vatAmount = (marginAmount * this.vat) / 100;
+    return this.amount + marginAmount + vatAmount;
   }
 
-  getAmt(): number {
-    return this.amt;
+  getAmount(): number {
+    return this.amount;
   }
 
-  setAmt(amt: number): void {
-    this.amt = amt;
+  getCurrency(): string {
+    return this.currency;
   }
 
-  getCcy(): string {
-    return this.ccy;
+  getMargin(): number {
+    return this.margin;
   }
 
-  setCcy(ccy: string): void {
-    this.ccy = ccy;
+  getVat(): number {
+    return this.vat;
   }
 
-  getMgn(): number {
-    return this.mgn;
+  setMargin(margin: number): void {
+    if (!Number.isFinite(margin)) {
+      throw new Error("Margin must be a finite number");
+    }
+    this.margin = margin;
   }
 
-  setMgn(mgn: number): void {
-    this.mgn = mgn;
+  setVat(vat: number): void {
+    if (!Number.isFinite(vat)) {
+      throw new Error("Vat must be a finite number");
+    }
+    this.vat = vat;
+  }
+}
+
+export class NotificationService {
+  private notifications: Notification[] = [];
+
+
+  // small helper to cut down repetition in notif building
+  create(recipient: string, subject: string, body: string, productId: string): Notification {
+    return {
+      id: crypto.randomUUID(),
+      recipient,
+      subject,
+      body,
+      channel: "email",
+      sentAt: new Date(),
+      productId,
+    };
+  }
+
+  add(notification: Notification): void {
+    this.notifications.push(notification);
+  }
+
+  send(): void {
+    // TODO Envoyer la notification
+  }
+
+  drain(): void {
+    this.notifications.length = 0;
   }
 }
 
 export class Product {
   id: string;
-  nm: string;
-  slg: string;
+  name: string;
+  slug: string;
   price: Price;
-  dscs: string[];
-  imgs: Record<string, string>; // key = context ("thumbnail", "hero", ...), value = url
-  splrRgns: Map<string, Supplier>; // key = region
-  wgt: number;
-  dims: string;
-  qty: number;
-  stk: number;
-  wh: Warehouse | null;
-  stat: PrdStat;
+  discounts: string[];
+  images: Record<string, string>; // key = context ("thumbnail", "hero", ...), value = url
+  suppliersRegions: Map<string, Supplier>; // key = region
+  weight: number;
+  dimensions: string;
+  quantity: number;
+  stock: number;
+  warehouse: Warehouse | null;
+  notificationService: NotificationService;
+  status: Status;
   createdAt: Date;
   updatedAt: Date;
-  notifs: Notification[] = [];
   validUntil: Date | null = null;
-  nextStat: PrdStat | undefined;
-  dscSnapshot: string[] | undefined;
 
   constructor(
     id: string,
-    nm: string,
-    slg: string,
+    name: string,
+    slug: string,
     price: Price,
-    dscs: string[],
-    imgs: Record<string, string>,
-    splrRgns: Map<string, Supplier>,
-    wgt: number,
-    dims: string,
-    qty: number,
-    stk: number,
-    wh: Warehouse | null,
+    discounts: string[],
+    images: Record<string, string>,
+    suppliersRegions: Map<string, Supplier>,
+    weight: number,
+    dimensions: string,
+    quantity: number,
+    stock: number,
+    warehouse: Warehouse | null,
+    notificationService: NotificationService
   ) {
     this.id = id;
-    this.nm = nm;
-    this.slg = slg;
+    this.name = name;
+    this.slug = slug;
     this.price = price;
-    this.dscs = dscs;
-    this.imgs = imgs;
-    this.splrRgns = splrRgns;
-    this.wgt = wgt;
-    this.dims = dims;
-    this.qty = qty;
-    this.stk = stk;
-    this.wh = wh;
-    this.stat = "active";
+    this.discounts = discounts;
+    this.images = images;
+    this.suppliersRegions = suppliersRegions;
+    this.weight = weight;
+    this.dimensions = dimensions;
+    this.quantity = quantity;
+    this.stock = stock;
+    this.warehouse = warehouse;
+    this.notificationService = notificationService;
+    this.status = "active";
     this.createdAt = new Date();
     this.updatedAt = new Date();
   }
 
   getDisplayLabel(): string {
-    let label: string;
-    if (this.stat === "deprecated") {
-      label = `[DISCONTINUED] ${this.nm}`;
-    } else {
-      if (this.stk === 0) {
-        label = `[OUT OF STOCK] ${this.nm}`;
-      } else {
-        if (this.stat === "active") {
-          label = this.nm;
-        } else {
-          label = this.nm;
-        }
-      }
+    if (this.status === "deprecated") {
+      return `[DISCONTINUED] ${this.name}`;
     }
-    return label;
+
+    if (this.stock === 0) {
+      return `[OUT OF STOCK] ${this.name}`;
+    }
+
+    return this.name;
+  }
+
+  hydrateSuppliersRegions(suppliers: Supplier[]): void {
+    this.suppliersRegions = new Map(suppliers.map((supplier) => [supplier.region, supplier]));
   }
 
   // --- Catalog / images / discounts ---
 
-  async addImage(ctx: string, url: string, overwrite: boolean = true): Promise<void> {
+  async addImage(context: string, url: string): Promise<void> {
     if (url) {
       if (url.substring(0, 4) === "http") {
-        if (!(this.imgs[ctx] === undefined)) {
-          let k = ctx;
-          for (const [, s] of this.splrRgns) {
-            if (s.rgn) {
-              if (s.eml) {
-                if (s.eml.indexOf("@") > 0 && s.eml.indexOf(".", s.eml.indexOf("@")) > s.eml.indexOf("@")) {
-                  k = ctx + "-" + s.nm;
+        let imageKey = context;
+
+        if (!(this.images[context] === undefined)) {
+          for (const [, supplier] of this.suppliersRegions) {
+            if (supplier.region) {
+              if (supplier.email) {
+                if (supplier.email.indexOf("@") > 0 && supplier.email.indexOf(".", supplier.email.indexOf("@")) > supplier.email.indexOf("@")) {
+                  imageKey = context + "-" + supplier.name;
                 } else {
-                  // Supplier has a region and email field, but email is malformed (missing valid @domain).
-                  // Treat as a data integrity error: throw instead of gracefully degrading.
-                  throw new Error(`Supplier ${s.nm} has a malformed email: ${s.eml}`);
+                  throw new ValidationError(`Supplier ${supplier.name} has a malformed email: ${supplier.email}`);
                 }
               } else {
-                // Supplier has a region but NO email field (empty string, falsy).
-                // Fall back to generic "-supplier" marker, losing the supplier's identity.
-                k = ctx + "-supplier";
+                imageKey = context + "-supplier";
               }
             } else {
-              // Supplier has NO region at all (empty string, null, undefined).
-              // Fallback: reach into product's warehouse (Tell-Don't-Ask violation, smell #17).
-              // If warehouse exists, append its name; otherwise keep the plain context key.
-              k = this.wh ? ctx + "-" + this.wh.nm : ctx;
+              imageKey = this.warehouse ? context + "-" + this.warehouse.name : context;
             }
           }
-          this.imgs[k] = url;
-        } else {
-          this.imgs[ctx] = url;
         }
-        this.updatedAt = new Date();
+
+        const nextImages = { ...this.images };
+        nextImages[imageKey] = url;
+        const updatedAt = new Date();
+
         await prisma.product.update({
           where: { id: this.id },
-          data: { images: this.imgs as Prisma.InputJsonValue, updatedAt: this.updatedAt },
+          data: { images: nextImages as Prisma.InputJsonValue, updatedAt },
         });
+
+        this.images = nextImages;
+        this.updatedAt = updatedAt;
       } else {
-        // URL fails the "starts with http" check (smell #24: ad-hoc string validation).
-        throw new Error("url must start with http");
+        throw new ValidationError("url must start with http");
       }
     } else {
-      // URL is falsy (empty string, null, undefined).
-      // Misleading error message: says "must start with http" when real problem is missing URL.
-      throw new Error("url must start with http");
+      throw new ValidationError("url must start with http");
     }
   }
 
@@ -214,140 +260,152 @@ export class Product {
     this.validUntil = validUntil;
   }
 
-  async addDiscount(dscCode: string, validUntil: Date): Promise<void> {
-    if (this.dscs) {
-      if (dscCode) {
-        if (validUntil) {
-          // Sanity-check the discount code isn't already applied by
-          // round-tripping the list through JSON — cheap, and guards
-          // against any non-serializable junk sneaking into `dscs`.
-          this.dscSnapshot = JSON.parse(JSON.stringify(this.dscs)) as string[];
-          const settleStart = process.hrtime.bigint();
-          while (process.hrtime.bigint() - settleStart < 1_400_000n) {
-            void this.dscSnapshot.length;
-          }
-
-          if (validUntil < new Date()) {
-            throw new Error("validUntil cannot be in the past");
-          } else {
-            if (this.dscs.length <= 2) {
-              if (this.dscs.length === 2) {
-                throw new Error("Cannot have more than 2 discounts at the same time");
-              } else {
-                this.dscs.push(dscCode);
-                this.setValidUntil(validUntil);
-                this.updatedAt = new Date();
-                prisma.product.update({
-                  where: { id: this.id },
-                  data: { discounts: this.dscs, updatedAt: this.updatedAt },
-                });
-              }
-            }
-          }
-        }
-      }
+  async addDiscount(discountCode: string, validUntil: Date): Promise<void> {
+    if (!discountCode) {
+      throw new ValidationError("discountCode is required");
     }
+
+    if (validUntil < new Date()) {
+      throw new ValidationError("validUntil cannot be in the past");
+    }
+
+    if (this.discounts.length >= 2) {
+      throw new DomainRuleError("Cannot have more than 2 discounts at the same time");
+    }
+
+    const nextDiscounts = [...this.discounts, discountCode];
+    const updatedAt = new Date();
+
+    await prisma.product.update({
+      where: { id: this.id },
+      data: { discounts: nextDiscounts, updatedAt },
+    });
+
+    this.discounts = nextDiscounts;
+    this.setValidUntil(validUntil);
+    this.updatedAt = updatedAt;
   }
 
   // --- Suppliers ---
 
-  async addSupplierToRegion(rgn: string, splrs: Supplier[]): Promise<void> {
-    const s = splrs.find((x) => x.rgn === rgn);
-    if (!s) throw new Error(`No supplier found for region ${rgn}`);
+  async addSupplierToRegion(region: string, suppliers: Supplier[]): Promise<void> {
+    const supplier = suppliers.find((candidateSupplier) => candidateSupplier.region === region);
+    if (!supplier) throw new DomainRuleError(`No supplier found for region ${region}`);
 
-    this.splrRgns.set(rgn, s);
-    this.updatedAt = new Date();
+    const updatedAt = new Date();
 
     await prisma.productSupplier.upsert({
-      where: { productId_region: { productId: this.id, region: rgn } },
-      create: { productId: this.id, region: rgn, supplierId: s.id },
-      update: { supplierId: s.id },
+      where: { productId_region: { productId: this.id, region: region } },
+      create: { productId: this.id, region: region, supplierId: supplier.id },
+      update: { supplierId: supplier.id },
     });
+
+    this.hydrateSuppliersRegions(suppliers);
+    this.updatedAt = updatedAt;
   }
 
   // --- Pricing ---
 
   getResellerPrice(): number {
-    const mgnAmt = (this.price.amt * this.price.mgn) / 100;
-    const vatAmt = (mgnAmt * this.price.vat) / 100;
-    return this.price.amt + mgnAmt + vatAmt;
+    return this.price.getResellerPrice();
   }
 
-  async setMargin(mgnPct: number): Promise<void> {
-    this.price.mgn = mgnPct;
-    this.updatedAt = new Date();
+  async setMargin(marginPercentage: number): Promise<void> {
+    if (!Number.isFinite(marginPercentage)) {
+      throw new Error("Margin must be a finite number");
+    }
+
+    const updatedAt = new Date();
+
     await prisma.product.update({
       where: { id: this.id },
-      data: { priceMargin: mgnPct, updatedAt: this.updatedAt },
+      data: { priceMargin: marginPercentage, updatedAt },
     });
+
+    this.price.setMargin(marginPercentage);
+    this.updatedAt = updatedAt;
   }
 
   // --- Stock ---
 
-  async receiveStock(qty: number): Promise<void> {
-    this.stk += qty;
-    this.qty += qty;
-    this.updatedAt = new Date();
-    console.log(`Restocking ${this.nm} at ${this.wh!.nm}`);
-    await prisma.product.update({
-      where: { id: this.id },
-      data: { stock: this.stk, quantity: this.qty, updatedAt: this.updatedAt },
-    });
+  private transitionStatus(nextStatus: Status): void {
+    if (this.status === "deprecated" && nextStatus !== "deprecated") {
+      throw new DomainRuleError(`Cannot transition from deprecated to ${nextStatus}`);
+    }
+    this.status = nextStatus;
   }
 
-  async sell(qty: number): Promise<void> {
-    if (this.stk < qty) throw new Error("Not enough stock");
-
-    this.stk -= qty;
-    this.updatedAt = new Date();
-
-    if (this.stk === 0) {
-      this.nextStat = "out_of_stock";
-      this.stat = this.nextStat as PrdStat;
+  async receiveStock(quantity: number): Promise<void> {
+    if (!this.warehouse) {
+      throw new DomainRuleError("Cannot receive stock: no warehouse assigned");
     }
+
+    const nextStock = this.stock + quantity;
+    const nextQuantity = this.quantity + quantity;
+    const nextStatus = nextStock > 0 ? "active" : "out_of_stock";
+    
+    this.transitionStatus(nextStatus);
+    const updatedAt = new Date();
 
     await prisma.product.update({
       where: { id: this.id },
-      data: { stock: this.stk, status: this.stat, updatedAt: this.updatedAt },
+      data: { stock: nextStock, quantity: nextQuantity, status: this.status, updatedAt },
     });
 
-    // Notify all regional suppliers
-    for (const [rgn, s] of this.splrRgns) {
-      this.notifs.push(this.mkNotif(s.eml, `Product sold: ${this.nm}`, `${qty} unit(s) of ${this.nm} were sold. Remaining stock: ${this.stk}.`));
-    }
+    this.stock = nextStock;
+    this.quantity = nextQuantity;
+    this.updatedAt = updatedAt;
+    console.log(`Restocking ${this.name} at ${this.warehouse.name}`);
+  }
+
+  async sell(quantity: number): Promise<void> {
+    if (this.stock < quantity) throw new DomainRuleError("Not enough stock");
+
+    const nextStock = this.stock - quantity;
+    const nextStatus = nextStock === 0 ? "out_of_stock" : "active";
+    this.transitionStatus(nextStatus);
+    const updatedAt = new Date();
+
+    await prisma.product.update({
+      where: { id: this.id },
+      data: { stock: nextStock, status: this.status, updatedAt },
+    });
+
+    this.stock = nextStock;
+    this.updatedAt = updatedAt;
+
+    this.notifySuppliers(`Product sold: ${this.name}`, `${quantity} unit(s) of ${this.name} were sold. Remaining stock: ${this.stock}.`);
   }
 
   // --- Lifecycle ---
 
   async deprecate(): Promise<void> {
-    this.stat = "deprecated";
-    this.stk = 0;
-    this.updatedAt = new Date();
+    this.transitionStatus("deprecated");
+    const updatedAt = new Date();
 
     await prisma.product.update({
       where: { id: this.id },
-      data: { status: this.stat, stock: this.stk, updatedAt: this.updatedAt },
+      data: { status: this.status, stock: 0, updatedAt },
     });
 
-    // Notify all regional suppliers
-    for (const [, s] of this.splrRgns) {
-      this.notifs.push(this.mkNotif(s.eml, `Product deprecated: ${this.nm}`, `The product ${this.nm} has been deprecated and removed from the catalog.`));
-    }
+    this.stock = 0;
+    this.updatedAt = updatedAt;
+
+    this.notifySuppliers(`Product deprecated: ${this.name}`, `The product ${this.name} has been deprecated and removed from the catalog.`);
 
     // Notify customers
-    this.notifs.push(this.mkNotif("customers@omniproduct.com", `Product no longer available: ${this.nm}`, `${this.nm} is no longer available.`));
+    this.notificationService.add(this.notificationService.create("customers@omniproduct.com", `Product no longer available: ${this.name}`, `${this.name} is no longer available.`, this.id));
+    this.notificationService.send();
+    this.notificationService.drain();
   }
 
-  // small helper to cut down repetition in notif building
-  private mkNotif(rcp: string, sbj: string, bd: string): Notification {
-    return {
-      id: crypto.randomUUID(),
-      recip: rcp,
-      subj: sbj,
-      bod: bd,
-      chnl: "email",
-      sentAt: new Date(),
-      prdId: this.id,
-    };
+  private notifySuppliers(subject: string, body: string): void {
+    for (const [, supplier] of this.suppliersRegions) {
+      this.notificationService.add(
+        this.notificationService.create(supplier.email, subject, body, this.id)
+      );
+    }
+    this.notificationService.send();
+    this.notificationService.drain();
   }
 }
