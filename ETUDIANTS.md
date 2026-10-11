@@ -29,7 +29,7 @@
 ## 3. Rendu
 
 - **TD :** TD1
-- **Lien de la PR :** (à coller une fois la PR ouverte)
+- **Lien de la PR :** [2026-IUT-BUT3-RECAN — TD1 — revue de Product.ts](https://github.com/IUT-BUT3-2026/revues-de-code/pull/18)
 
 ## 4. Note — réservée à l'enseignant
 
