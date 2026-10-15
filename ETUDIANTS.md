@@ -23,11 +23,11 @@
 
 ## 2. Étudiants de l'équipe
 
-| Nom (état civil) | Pseudo GitHub | Rôle |
-|------------------|---------------|------|
-|                  |               | porteur |
-|                  |               | membre |
-|                  |               | membre |
+| Nom (état civil) | Pseudo GitHub    | Rôle    |
+|------------------|------------------|---------|
+|JONQUIERES Mathieu|Mathieu JONQUIERES| porteur |
+|VALIERE Raphael   |RaphaelValiere    | membre  |
+|MICHON Ismael     |korato01          | membre  |
 
 ## 3. Rendu
 
