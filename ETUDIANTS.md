@@ -14,7 +14,7 @@
 
 ## 1. Identification de l'équipe
 
-- **Préfixe :** `<année>-<etablissement>-<groupe>` — ex. `2026-IUT-BUT3-DUPONT`
+- **Préfixe :** `2026-IUT-BUT3-GABARRE` — ex. `2026-IUT-BUT3-DUPONT`
   - `année` = année universitaire (ex. `2026`)
   - `etablissement` = établissement et promotion (ex. `IUT-BUT3`)
   - `groupe` = nom de famille du porteur, **sans accent, en majuscules**
@@ -25,14 +25,14 @@
 
 | Nom (état civil) | Pseudo GitHub | Rôle |
 |------------------|---------------|------|
-|                  |               | porteur |
-|                  |               | membre |
+| Santiago GABARRE | RuZyoFR | porteur |
+| Nathanaël DAUNIS | Stefffox | membre |
 |                  |               | membre |
 
 ## 3. Rendu
 
-- **TD :** (ex. `TD1`)
-- **Lien de la PR :** (à coller une fois la PR ouverte)
+- **TD :** TD2
+- **Lien de la PR :** TD2 : https://github.com/IUT-BUT3-2026/revues-de-code/pull/28 (version complète) ou PR 36 à 44 (série découpée) ; TD1 : PR 30 à 35
 
 ## 4. Note — réservée à l'enseignant
 
